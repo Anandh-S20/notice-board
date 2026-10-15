@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notice Board — Admin</title>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    background: radial-gradient(1200px 800px at 70% 20%, #24334f 0%, #141c2e 55%, #0d1322 100%);
+    color: #fff;
+    overflow: hidden;
+  }
+
+  /* ---------- ADMIN VIEW ---------- */
+  #admin { max-width: 920px; margin: 0 auto; padding: 30px 22px 60px; }
+  .card {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px; padding: 22px; margin-bottom: 20px;
+  }
+  .card h3 { margin-bottom: 14px; font-size: 20px; }
+  .card label { display: block; font-size: 13px; opacity: .75; margin: 12px 0 5px; }
+  .card input[type=text], .card input[type=number], .card textarea, .card select {
+    width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2);
+    background: rgba(0,0,0,.3); color: #fff; font-size: 15px; font-family: inherit;
+  }
+  .card textarea { min-height: 80px; resize: vertical; }
+  .row { display: flex; gap: 12px; } .row > * { flex: 1; }
+  .btn {
+    display: inline-block; padding: 10px 20px; border-radius: 8px; border: none;
+    font-size: 15px; font-weight: 600; cursor: pointer; margin: 6px 6px 0 0;
+  }
+  .btn.primary { background: #2f7fe0; color: #fff; }
+  .btn.ghost { background: rgba(255,255,255,.12); color: #fff; }
+  .btn.danger { background: #e05252; color: #fff; }
+  .btn.small { padding: 6px 12px; font-size: 13px; }
+  .notice-item {
+    background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;
+  }
+  .notice-item .ni-title { font-weight: 700; font-size: 16px; }
+  .notice-item .ni-body { opacity: .8; font-size: 14px; margin: 4px 0 8px; white-space: pre-line; }
+  .notice-item.inactive { opacity: .45; }
+  .pill { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    padding: 3px 10px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+  #pin-gate { text-align: center; padding: 80px 20px; }
+  #pin-gate input { font-size: 24px; text-align: center; letter-spacing: 8px; width: 200px;
+    padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.25);
+    background: rgba(0,0,0,.35); color: #fff; }
+  #kiosk-link-out { word-break: break-all; background: rgba(0,0,0,.35); padding: 12px;
+    border-radius: 8px; font-size: 13px; margin-top: 10px; }
+  .hint { font-size: 13px; opacity: .65; margin-top: 8px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<!-- ================= ADMIN VIEW ================= -->
+<div id="admin">
+  <div id="pin-gate">
+    <h2 style="margin-bottom:18px;">Admin Panel</h2>
+    <p class="hint" style="margin-bottom:14px;">Enter PIN to continue</p>
+    <input type="password" id="pin-input" maxlength="12" inputmode="numeric" placeholder="••••">
+    <div><button class="btn primary" id="pin-go" style="margin-top:16px;">Unlock</button></div>
+    <p class="hint" id="pin-err" style="color:#e05252; display:none;">Wrong PIN, try again.</p>
+    <p class="hint">Default PIN is <b>1234</b> — change it below after unlocking.</p>
+    <div><a class="btn ghost" href="index.html">← Back to display</a></div>
+  </div>
+
+  <div id="admin-panel" style="display:none;">
+    <h2 style="margin-bottom:16px;">Admin Panel</h2>
+
+    <div class="card">
+      <h3>Board settings</h3>
+      <label>Board title</label>
+      <input type="text" id="set-title">
+      <div class="row">
+        <div><label>Rotate notices every (seconds)</label><input type="number" id="set-rot" min="4" max="120"></div>
+        <div><label>Admin PIN</label><input type="text" id="set-pin" maxlength="12"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>QR code</h3>
+      <label>Label shown above the QR</label>
+      <input type="text" id="set-qr-label">
+      <label>QR content (link or text encoded in the QR)</label>
+      <input type="text" id="set-qr-content" placeholder="https://...">
+      <p class="hint">Leave empty to always show the default break log QR — the breaktime QR is always displayed.</p>
+    </div>
+
+    <div class="card">
+      <h3>Notices</h3>
+      <div id="notice-list"></div>
+      <h3 style="margin-top:18px;">Add notice</h3>
+      <label>Title</label><input type="text" id="new-title" placeholder="Notice title">
+      <label>Details</label><textarea id="new-body" placeholder="Notice details..."></textarea>
+      <label>Photo (optional)</label>
+      <input type="text" id="new-imgurl" placeholder="Paste an image link...">
+      <input type="file" id="new-imgfile" accept="image/*" style="margin-top:8px;">
+      <img id="new-imgprev" alt="" style="display:none; max-width:180px; margin-top:10px; border-radius:8px;">
+      <p class="hint">Uploaded photos are compressed automatically. For very large photos prefer an image link — huge uploads can make the kiosk link too long.</p>
+      <div class="row">
+        <div><label>Tag</label>
+          <select id="new-tag">
+            <option value="info">Info</option>
+            <option value="important">Important</option>
+            <option value="urgent">Urgent</option>
+            <option value="event">Event</option>
+          </select>
+        </div>
+        <div><label>&nbsp;</label><button class="btn primary" id="add-notice">Add notice</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Kiosk link</h3>
+      <p class="hint">This link carries ALL settings inside it — use it as the start page for the Single-App Kiosk browser. No login or network storage needed on the kiosk PC.</p>
+      <button class="btn primary" id="copy-kiosk">Copy kiosk link</button>
+      <span id="copy-ok" style="color:#3fae6a; display:none; margin-left:10px;">Copied!</span>
+      <div id="kiosk-link-out"></div>
+    </div>
+
+    <button class="btn primary" id="save-all">Save all changes</button>
+    <button class="btn ghost" id="preview-display">Preview display</button>
+    <button class="btn danger" id="reset-all">Reset to defaults</button>
+    <p class="hint" id="save-ok" style="color:#3fae6a; display:none;">Saved.</p>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============ storage & config ============ */
+var LS_KEY = "noticeboard.v1";
+var DEFAULT_QR = "https://efftime.com/break_log/gate.php";
+
+function defaultConfig() {
+  return {
+    pin: "1234",
+    title: "Notice Board",
+    rotationSecs: 10,
+    qr: { label: "Breaktime QR Code", content: DEFAULT_QR },
+    notices: [
+      { id: "n1", title: "Welcome to the Notice Board", body: "This is a sample notice.\nReplace it on the admin page (PIN 1234).", tag: "info", active: true },
+      { id: "n2", title: "Sample: Team meeting at 4 PM", body: "Conference room. This is a sample — delete it on the admin page.", tag: "event", active: true }
+    ]
+  };
+}
+function b64e(s) {
+  return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64d(s) {
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  return decodeURIComponent(escape(atob(s)));
+}
+function loadConfig() {
+  var h = location.hash || "";
+  if (h.indexOf("#c=") === 0) {
+    try { return Object.assign(defaultConfig(), JSON.parse(b64d(h.slice(3)))); } catch (e) {}
+  }
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (raw) return Object.assign(defaultConfig(), JSON.parse(raw));
+  } catch (e) {}
+  return defaultConfig();
+}
+function saveConfig(cfg) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)); } catch (e) {}
+}
+var CFG = loadConfig();
+function esc(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/* ============ admin view ============ */
+function displayURL() {
+  var base = location.href.split("#")[0];
+  base = base.slice(0, base.lastIndexOf("/") + 1) + "index.html";
+  return base + "#c=" + b64e(JSON.stringify(CFG));
+}
+function renderNoticeList() {
+  var wrap = document.getElementById("notice-list");
+  wrap.innerHTML = "";
+  CFG.notices.forEach(function (n, i) {
+    var d = document.createElement("div");
+    d.className = "notice-item" + (n.active ? "" : " inactive");
+    d.innerHTML =
+      (n.img ? '<img src="' + esc(n.img) + '" alt="" style="max-width:120px;border-radius:8px;margin-bottom:8px;display:block;">' : "") +
+      '<span class="ni-title">' + esc(n.title) + '</span><span class="pill tag ' + esc(n.tag || "info") + '">' + esc(n.tag || "info") + "</span>" +
+      '<div class="ni-body">' + esc(n.body) + "</div>" +
+      '<button class="btn small ghost" data-a="toggle">' + (n.active ? "Hide" : "Show") + "</button>" +
+      '<button class="btn small ghost" data-a="edit">Edit</button>' +
+      '<button class="btn small ghost" data-a="up">▲</button>' +
+      '<button class="btn small ghost" data-a="down">▼</button>' +
+      '<button class="btn small danger" data-a="del">Delete</button>';
+    d.querySelectorAll("button").forEach(function (b) {
+      b.onclick = function () {
+        var a = b.getAttribute("data-a");
+        if (a === "del") { if (confirm("Delete this notice?")) CFG.notices.splice(i, 1); }
+        else if (a === "toggle") { n.active = !n.active; }
+        else if (a === "up" && i > 0) { CFG.notices.splice(i - 1, 0, CFG.notices.splice(i, 1)[0]); }
+        else if (a === "down" && i < CFG.notices.length - 1) { CFG.notices.splice(i + 1, 0, CFG.notices.splice(i, 1)[0]); }
+        else if (a === "edit") {
+          var t = prompt("Title:", n.title); if (t === null) return;
+          var bo = prompt("Details:", n.body); if (bo === null) return;
+          var tg = prompt("Tag (info / important / urgent / event):", n.tag || "info");
+          n.title = t; n.body = bo;
+          if (["info", "important", "urgent", "event"].indexOf((tg || "").toLowerCase()) >= 0) n.tag = tg.toLowerCase();
+          var im = prompt("Photo: paste an image URL, type 'none' to remove, or leave empty to keep the current photo.", "");
+          if (im !== null) {
+            im = im.trim();
+            if (im.toLowerCase() === "none") n.img = "";
+            else if (im) n.img = im;
+          }
+        }
+        saveConfig(CFG); renderNoticeList();
+      };
+    });
+    wrap.appendChild(d);
+  });
+  if (!CFG.notices.length) wrap.innerHTML = '<p class="hint">No notices yet — add one below.</p>';
+}
+function initAdmin() {
+  var go = function () {
+    var v = document.getElementById("pin-input").value;
+    if (v === CFG.pin) {
+      document.getElementById("pin-gate").style.display = "none";
+      document.getElementById("admin-panel").style.display = "";
+      document.getElementById("set-title").value = CFG.title || "";
+      document.getElementById("set-rot").value = CFG.rotationSecs || 10;
+      document.getElementById("set-pin").value = CFG.pin || "";
+      document.getElementById("set-qr-label").value = (CFG.qr && CFG.qr.label) || "";
+      document.getElementById("set-qr-content").value = (CFG.qr && CFG.qr.content) || "";
+      renderNoticeList();
+    } else {
+      document.getElementById("pin-err").style.display = "";
+    }
+  };
+  document.getElementById("pin-go").onclick = go;
+  document.getElementById("pin-input").addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+
+  var newImgData = "";
+  function setNewImgPreview(src) {
+    var p = document.getElementById("new-imgprev");
+    if (src) { p.src = src; p.style.display = ""; } else { p.style.display = "none"; }
+  }
+  document.getElementById("new-imgurl").addEventListener("input", function () {
+    newImgData = "";
+    setNewImgPreview(this.value.trim());
+  });
+  document.getElementById("new-imgfile").addEventListener("change", function () {
+    var f = this.files && this.files[0];
+    if (!f) return;
+    document.getElementById("new-imgurl").value = "";
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var maxW = 900, w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        var c = document.createElement("canvas"); c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        newImgData = c.toDataURL("image/jpeg", 0.72);
+        setNewImgPreview(newImgData);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  });
+
+  document.getElementById("add-notice").onclick = function () {
+    var t = document.getElementById("new-title").value.trim(),
+        b = document.getElementById("new-body").value.trim();
+    if (!t) { alert("Give the notice a title."); return; }
+    var img = newImgData || document.getElementById("new-imgurl").value.trim();
+    CFG.notices.push({ id: "n" + Date.now(), title: t, body: b, tag: document.getElementById("new-tag").value, img: img, active: true });
+    document.getElementById("new-title").value = "";
+    document.getElementById("new-body").value = "";
+    document.getElementById("new-imgurl").value = "";
+    document.getElementById("new-imgfile").value = "";
+    newImgData = ""; setNewImgPreview("");
+    saveConfig(CFG); renderNoticeList();
+  };
+
+  function collect() {
+    CFG.title = document.getElementById("set-title").value.trim() || "Notice Board";
+    var r = parseInt(document.getElementById("set-rot").value, 10);
+    CFG.rotationSecs = isNaN(r) ? 10 : Math.max(4, Math.min(120, r));
+    var p = document.getElementById("set-pin").value.trim();
+    if (p) CFG.pin = p;
+    CFG.qr = {
+      label: document.getElementById("set-qr-label").value.trim() || "QR Code",
+      content: document.getElementById("set-qr-content").value.trim()
+    };
+  }
+  document.getElementById("save-all").onclick = function () {
+    collect(); saveConfig(CFG);
+    var ok = document.getElementById("save-ok");
+    ok.style.display = ""; setTimeout(function () { ok.style.display = "none"; }, 2000);
+  };
+  document.getElementById("preview-display").onclick = function () { collect(); saveConfig(CFG); window.open(displayURL(), "_blank"); };
+  document.getElementById("reset-all").onclick = function () {
+    if (confirm("Reset everything to defaults? This erases all notices.")) {
+      CFG = defaultConfig(); saveConfig(CFG); location.reload();
+    }
+  };
+  document.getElementById("copy-kiosk").onclick = function () {
+    collect(); saveConfig(CFG);
+    var url = displayURL();
+    document.getElementById("kiosk-link-out").textContent = url;
+    var done = function () {
+      var ok = document.getElementById("copy-ok");
+      ok.style.display = ""; setTimeout(function () { ok.style.display = "none"; }, 2000);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, function () { prompt("Copy this kiosk link:", url); });
+    } else { prompt("Copy this kiosk link:", url); }
+  };
+}
+
+/* ============ boot ============ */
+initAdmin();
+</script>
+</body>
+</html>
