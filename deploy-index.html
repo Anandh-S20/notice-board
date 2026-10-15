@@ -57,6 +57,10 @@ var qrcode=function(){function i(t,r){function a(t,r){g=function(t){for(var r=ne
   .tag.event    { background: #3fae6a; }
   .notice-card h2 { font-size: clamp(30px, 4.2vw, 64px); margin-bottom: 18px; line-height: 1.15; }
   .notice-card p  { font-size: clamp(18px, 2.2vw, 32px); line-height: 1.55; opacity: .92; white-space: pre-line; }
+  .notice-card.has-img { flex-direction: row; align-items: center; gap: clamp(20px, 3vw, 44px); }
+  .notice-img { width: 34%; aspect-ratio: 4/3; object-fit: cover; border-radius: 16px; flex-shrink: 0; background: rgba(0,0,0,.2); }
+  .notice-text { min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+  .has-img .notice-text { flex: 1; }
 
   #nav-dots { position: absolute; bottom: 18px; left: 0; right: 0; display: flex; gap: 10px; justify-content: center; }
   #nav-dots span { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.25); cursor: pointer; }
@@ -206,9 +210,10 @@ function renderNotices() {
   if (curIdx >= list.length) curIdx = 0;
   list.forEach(function (n, i) {
     var d = document.createElement("div");
-    d.className = "notice-card" + (i === curIdx ? " show" : "");
-    d.innerHTML = '<span class="tag ' + esc(n.tag || "info") + '">' + esc(n.tag || "info") + "</span>" +
-      "<h2>" + esc(n.title) + "</h2><p>" + esc(n.body) + "</p>";
+    d.className = "notice-card" + (i === curIdx ? " show" : "") + (n.img ? " has-img" : "");
+    d.innerHTML = (n.img ? '<img class="notice-img" src="' + esc(n.img) + '" alt="">' : "") +
+      '<div class="notice-text"><span class="tag ' + esc(n.tag || "info") + '">' + esc(n.tag || "info") + "</span>" +
+      "<h2>" + esc(n.title) + "</h2><p>" + esc(n.body) + "</p></div>";
     wrap.appendChild(d);
     var dot = document.createElement("span");
     if (i === curIdx) dot.className = "on";
