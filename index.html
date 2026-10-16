@@ -11,9 +11,8 @@
   html, body { height: 100%; }
   body {
     font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-    background: radial-gradient(1200px 800px at 70% 20%, #f3e8ff 0%, #e9e4f5 55%, #ddd6f3 100%);
-    color: #1e1b2e;
-    color: #fff;
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 50%, #e8edf3 100%);
+    color: #1e293b;
     overflow: hidden;
   }
 
@@ -21,27 +20,28 @@
   #display { height: 100vh; display: flex; flex-direction: column; }
   #display header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 0; margin: 18px 42px 10px; border-radius: 18px;
-    background: linear-gradient(100deg, #fca5a5 0%, #c4b5fd 50%, #93c5fd 100%);
-    box-shadow: 0 10px 34px rgba(167, 139, 250, .25);
+    padding: 0; margin: 18px 42px 10px; border-radius: 14px;
+    background: linear-gradient(100deg, #0a1628 0%, #14264a 50%, #1e3a5f 100%);
+    box-shadow: 0 10px 34px rgba(10, 22, 40, .3);
     padding: 18px 38px;
     position: relative; overflow: hidden;
+    border-bottom: 3px solid #c9a227;
   }
   #display header::after {
     content: ""; position: absolute; right: -70px; top: -70px;
     width: 260px; height: 260px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 70%);
+    background: radial-gradient(circle, rgba(201,162,39,.12) 0%, rgba(201,162,39,0) 70%);
     pointer-events: none;
   }
-  #board-title { font-size: clamp(30px, 3.6vw, 48px); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #1e1b2e; text-shadow: 0 1px 6px rgba(255,255,255,.4); }
-  #clock-in { color: #1e1b2e; text-align: right; margin-left: 0; }
-  #clock-in .time, #clock-uae .time { font-size: clamp(20px, 2.2vw, 30px); font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 1px 6px rgba(255,255,255,.4); line-height: 1.25; }
-  #clock-in .tz, #clock-uae .tz { font-size: clamp(13px, 1.4vw, 18px); font-weight: 700; opacity: .75; letter-spacing: 1px; margin-right: 8px; color: #4c1d95; }
+  #board-title { font-size: clamp(30px, 3.6vw, 48px); font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #ffffff; text-shadow: 0 2px 8px rgba(0,0,0,.3); }
+  #clock-in { color: #ffffff; text-align: right; margin-left: 0; }
+  #clock-in .time, #clock-uae .time { font-size: clamp(20px, 2.2vw, 30px); font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 1px 4px rgba(0,0,0,.3); line-height: 1.25; color: #ffffff; }
+  #clock-in .tz, #clock-uae .tz { font-size: clamp(13px, 1.4vw, 18px); font-weight: 700; opacity: .9; letter-spacing: 2px; margin-right: 8px; color: #c9a227; }
   #clock-in, #clock-uae { display: block; }
-  #clock-uae { color: #1e1b2e; text-align: right; flex: none; }
+  #clock-uae { color: #ffffff; text-align: right; flex: none; }
   @keyframes flagfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
   #clock-uae { flex: 1; text-align: center; color: #fff; }
-  #clock .date, .date { font-size: clamp(14px, 1.4vw, 20px); opacity: .85; margin-top: 4px; color: #1e1b2e; font-weight: 600; }
+  #clock .date, .date { font-size: clamp(14px, 1.4vw, 20px); opacity: .85; margin-top: 4px; color: #c9a227; font-weight: 600; letter-spacing: 1px; }
 
   #display main {
     flex: 1; display: flex; gap: 26px;
@@ -52,33 +52,40 @@
   .notice-card {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; justify-content: center;
-    background: linear-gradient(135deg, #ffffff 0%, #f5f0ff 50%, #fef2f2 100%);
-    border: 1px solid rgba(167,139,250,.3);
-    box-shadow: 0 18px 50px rgba(0,0,0,.08), 0 0 40px rgba(167,139,250,.12), inset 0 1px 0 rgba(255,255,255,.8);
-    border-radius: 22px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-top: 4px solid #c9a227;
+    box-shadow: 0 18px 50px rgba(10,22,40,.1), 0 2px 8px rgba(10,22,40,.06);
+    border-radius: 14px;
     padding: clamp(28px, 4vw, 60px);
     display: flex; flex-direction: column; justify-content: center;
     opacity: 0; transform: rotateY(90deg) translateZ(100px);
     transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.3,1.1);
     pointer-events: none;
-    color: #1e1b2e;
+    color: #1e293b;
     backface-visibility: hidden;
     transform-style: preserve-3d;
   }
   .notice-card.show { opacity: 1; transform: rotateY(0deg) translateZ(0); pointer-events: auto; }
   .notice-card.show:hover { transform: rotateY(0deg) translateZ(20px) scale(1.01); }
-  .notice-card .tag {
-    align-self: flex-start; font-size: clamp(13px, 1.2vw, 17px); font-weight: 700;
-    text-transform: uppercase; letter-spacing: 2px; color: #fff;
-    padding: 8px 18px; border-radius: 999px; margin-bottom: 22px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.2);
+  .notice-card h2 {
+    font-size: clamp(28px, 3.2vw, 52px); font-weight: 800; margin: 0 0 18px;
+    color: #0a1628; letter-spacing: .5px; line-height: 1.2;
   }
-  .tag.info     { background: linear-gradient(135deg, #2563eb, #7c3aed); }
-  .tag.important{ background: linear-gradient(135deg, #f59e0b, #ef4444); }
-  .tag.urgent   { background: linear-gradient(135deg, #dc2626, #991b1b); box-shadow: 0 0 20px rgba(220,38,38,.5); }
-  .tag.event    { background: linear-gradient(135deg, #7c3aed, #ec4899); }
-  .notice-card h2 { font-size: clamp(30px, 4.2vw, 64px); margin-bottom: 18px; line-height: 1.15; background: linear-gradient(90deg, #7c3aed 10%, #db2777 50%, #dc2626 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-  .notice-card p  { font-size: clamp(18px, 2.2vw, 32px); line-height: 1.55; opacity: .85; white-space: pre-line; color: #3b3554; }
+  .notice-card p {
+    font-size: clamp(18px, 2vw, 28px); line-height: 1.6; color: #475569;
+    margin: 0; white-space: pre-line;
+  }
+  .notice-card .tag {
+    align-self: flex-start; font-size: clamp(12px, 1.1vw, 15px); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px; color: #fff;
+    padding: 8px 20px; border-radius: 4px; margin-bottom: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  .tag.info     { background: linear-gradient(135deg, #1e3a5f, #0f1e3d); }
+  .tag.important{ background: linear-gradient(135deg, #c9a227, #a8861c); }
+  .tag.urgent   { background: linear-gradient(135deg, #b91c1c, #7f1d1d); }
+  .tag.event    { background: linear-gradient(135deg, #0d5c63, #083f45); }
   /* photo notice: image fills the entire event box.
      Text sits at the top, below the banner. */
   .notice-card.has-img {
@@ -106,15 +113,16 @@
 
   #qr-panel {
     width: clamp(320px, 26vw, 400px);
-    background: linear-gradient(160deg, #2d1b4e 0%, #1a1033 100%);
+    background: linear-gradient(160deg, #0f1e3d 0%, #0a1428 100%);
     color: #fff;
     padding: 30px 26px; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly;
-    box-shadow: 0 18px 50px rgba(0,0,0,.3);
-    flex-shrink: 0; border-radius: 22px;
-    border: 1px solid rgba(167,139,250,.4);
+    box-shadow: 0 18px 50px rgba(10, 22, 40, .35);
+    flex-shrink: 0; border-radius: 14px;
+    border: 1px solid rgba(201,162,39,.35);
+    border-top: 3px solid #c9a227;
     align-self: stretch;
   }
-  #qr-label { font-size: clamp(15px, 1.5vw, 20px); font-weight: 700; text-align: center; color: #fff; background: linear-gradient(100deg, #b91c1c, #7c3aed, #2563eb); border-radius: 999px; padding: 10px 26px; margin-bottom: 18px; letter-spacing: .5px; box-shadow: 0 4px 14px rgba(124,58,237,.3); }
+  #qr-label { font-size: clamp(15px, 1.5vw, 20px); font-weight: 700; text-align: center; color: #0a1628; background: linear-gradient(100deg, #d4af37, #c9a227); border-radius: 999px; padding: 10px 26px; margin-bottom: 18px; letter-spacing: 1px; box-shadow: 0 4px 14px rgba(201,162,39,.3); text-transform: uppercase; }
   /* Breaktime QR crop: their live page loads in the iframe behind, and this
      window cuts out ONLY the QR code (their QR is a fixed 500x500 image at
      page x=0, y~158 in a 500x875 iframe). JS scales it to fit exactly. */
