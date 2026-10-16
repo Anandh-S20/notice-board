@@ -138,6 +138,28 @@
     #notice-area { min-height: 420px; }
   }
 
+  /* ---------- DARK THEME ---------- */
+  body[data-theme="dark"] {
+    background: radial-gradient(1200px 800px at 70% 20%, #2a1f3d 0%, #16121f 55%, #0d0a14 100%);
+    color: #fff;
+  }
+  body[data-theme="dark"] #display header {
+    background: linear-gradient(100deg, #b91c1c 0%, #7c3aed 50%, #2563eb 100%);
+    box-shadow: 0 10px 34px rgba(124, 58, 237, .35);
+  }
+  body[data-theme="dark"] #board-title { color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+  body[data-theme="dark"] #clock-in, body[data-theme="dark"] #clock-uae { color: #fff; }
+  body[data-theme="dark"] #clock-in .tz, body[data-theme="dark"] #clock-uae .tz { color: #fff; opacity: .85; }
+  body[data-theme="dark"] .date { color: #fff; }
+  body[data-theme="dark"] .notice-card {
+    background: linear-gradient(135deg, rgba(76,29,149,.85) 0%, rgba(30,27,75,.9) 50%, rgba(15,23,42,.92) 100%);
+    border-color: rgba(167,139,250,.35); color: #fff;
+  }
+  body[data-theme="dark"] .notice-card h2 {
+    background: linear-gradient(90deg, #fff 30%, #c4b5fd 70%, #fca5a5);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  body[data-theme="dark"] .notice-card p { color: #fff; opacity: .92; }
 
 </style>
 </head>
@@ -146,12 +168,12 @@
 <div id="display">
   <header>
     <div style="display:flex; align-items:center; gap:16px;">
-      <img src="logo.png" alt="Aries Next Gen Hub" style="height:84px; width:auto;">
+      <img id="banner-logo" src="logo.png" alt="Logo" style="height:84px; width:auto;">
       <div id="board-title">Notice Board</div>
     </div>
     <div style="display:flex; align-items:center; gap:36px;">
       <div class="date" id="head-date"></div>
-      <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+      <div id="clocks-col" style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
         <div id="clock-in"><div class="time"><span class="tz">INDIA</span><span id="time-in">--</span></div></div>
         <div id="clock-uae"><div class="time"><span class="tz">UAE</span><span id="time-uae">--</span></div></div>
       </div>
@@ -255,7 +277,7 @@ function fitQrCrop() {
 function renderQR() {
   var frame = document.getElementById("qr-frame");
   document.getElementById("qr-label").textContent = "Breaktime QR Code";
-  var pageUrl = DEFAULT_QR;
+  var pageUrl = CFG.qrUrl || DEFAULT_QR;
   if (frame.getAttribute("src") !== pageUrl) frame.setAttribute("src", pageUrl);
   fitQrCrop();
   if (qrReloadTimer) clearInterval(qrReloadTimer);
@@ -306,14 +328,38 @@ function restartRotation() {
 function tickClock() {
   var d = new Date(), dt = document.getElementById("head-date");
   var fmt = { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true };
+  var tz1 = CFG.clock1Tz || "Asia/Kolkata", tz2 = CFG.clock2Tz || "Asia/Dubai";
   document.getElementById("time-in").textContent =
-    d.toLocaleTimeString("en-IN", Object.assign({ timeZone: "Asia/Kolkata" }, fmt));
+    d.toLocaleTimeString("en-IN", Object.assign({ timeZone: tz1 }, fmt));
   document.getElementById("time-uae").textContent =
-    d.toLocaleTimeString("en-IN", Object.assign({ timeZone: "Asia/Dubai" }, fmt));
-  dt.textContent = d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" });
+    d.toLocaleTimeString("en-IN", Object.assign({ timeZone: tz2 }, fmt));
+  dt.textContent = d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: tz1 });
 }
 function applyConfigToDisplay() {
-  document.getElementById("board-title").textContent = CFG.title || "Notice Board";
+  /* Banner */
+  document.getElementById("board-title").textContent = CFG.bannerTitle || "Notice Board";
+  var logoImg = document.getElementById("banner-logo");
+  if (CFG.logoUrl === "__none__") { logoImg.style.display = "none"; }
+  else { logoImg.style.display = ""; logoImg.src = CFG.logoUrl || "logo.png"; }
+  /* Clocks */
+  var clocks = document.getElementById("clocks-col");
+  if (CFG.showClocks === false) { clocks.style.display = "none"; }
+  else {
+    clocks.style.display = "";
+    document.querySelector("#clock-in .tz").textContent = CFG.clock1Label || "INDIA";
+    document.querySelector("#clock-uae .tz").textContent = CFG.clock2Label || "UAE";
+  }
+  /* Date */
+  document.getElementById("head-date").style.display = CFG.showDate === false ? "none" : "";
+  /* QR panel */
+  var qr = document.getElementById("qr-panel");
+  if (CFG.showQr === false) { qr.style.display = "none"; }
+  else {
+    qr.style.display = "";
+    document.getElementById("qr-label").textContent = CFG.qrLabel || "Breaktime QR Code";
+  }
+  /* Theme */
+  document.body.setAttribute("data-theme", CFG.theme || "light");
   renderQR(); curIdx = 0; renderNotices(); restartRotation();
 }
 function initDisplay() {
