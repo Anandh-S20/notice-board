@@ -47,6 +47,10 @@ export default async function handler(req, res) {
       return res.status(putRes.status).json({ error: "GitHub commit failed", detail: err });
     }
     const result = await putRes.json();
+    /* Purge CDN caches so the display picks up the change immediately */
+    try {
+      await fetch("https://purge.jsdelivr.net/gh/Anandh-S20/notice-board@main/config.json");
+    } catch (e) { /* purge failure shouldn't fail the sync */ }
     return res.status(200).json({ ok: true, sha: result.commit.sha.substring(0, 7) });
   } catch (e) {
     return res.status(500).json({ error: e.message });
