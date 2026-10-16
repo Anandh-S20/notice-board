@@ -268,8 +268,8 @@ function fetchKioskConfig(cb) {
       if (xhr.status === 200) {
         try {
           var remote = JSON.parse(xhr.responseText);
-          /* Only use remote if it has actual notices (not the empty default) */
-          if (remote && remote.notices && remote.notices.length) {
+          /* Use the shared config if valid (even with zero notices = clean board) */
+          if (remote && typeof remote === "object" && Array.isArray(remote.notices)) {
             CFG = Object.assign(defaultConfig(), remote);
             try { localStorage.setItem(LS_KEY, JSON.stringify(CFG)); } catch (e) {}
           }
