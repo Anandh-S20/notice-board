@@ -4,32 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Notice Board — Admin</title>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  .field-wrap { position: relative; display: flex; align-items: center; }
-  .field-wrap input, .field-wrap textarea { flex: 1; }
-  .save-tick {
-    display: none; margin-left: 8px; flex-shrink: 0;
-    width: 26px; height: 26px; line-height: 26px; text-align: center;
-    background: #22c55e; color: #fff; border-radius: 50%;
-    font-size: 15px; font-weight: bold;
-  }
-  .save-tick.show { display: inline-block; }
   html, body { height: 100%; }
   body {
     font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
     background: radial-gradient(1200px 800px at 70% 20%, #24334f 0%, #141c2e 55%, #0d1322 100%);
-    color: #fff;
-    overflow-x: hidden;
-    overflow-y: auto;
-    min-height: 100%;
+    color: #fff; overflow-x: hidden; overflow-y: auto; min-height: 100%;
   }
-
-  /* ---------- ADMIN VIEW ---------- */
   #admin { max-width: 920px; margin: 0 auto; padding: 30px 22px 60px; }
   .card {
     background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
@@ -37,7 +19,7 @@
   }
   .card h3 { margin-bottom: 14px; font-size: 20px; }
   .card label { display: block; font-size: 13px; opacity: .75; margin: 12px 0 5px; }
-  .card input[type=text], .card input[type=number], .card textarea, .card select {
+  .card input[type=text], .card input[type=number], .card input[type=password], .card textarea {
     width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2);
     background: rgba(0,0,0,.3); color: #fff; font-size: 15px; font-family: inherit;
   }
@@ -51,6 +33,7 @@
   .btn.ghost { background: rgba(255,255,255,.12); color: #fff; }
   .btn.danger { background: #e05252; color: #fff; }
   .btn.small { padding: 6px 12px; font-size: 13px; }
+  .btn.armed { background: #dc2626 !important; color: #fff !important; }
   .notice-item {
     background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.1);
     border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;
@@ -58,164 +41,176 @@
   .notice-item .ni-title { font-weight: 700; font-size: 16px; }
   .notice-item .ni-body { opacity: .8; font-size: 14px; margin: 4px 0 8px; white-space: pre-line; }
   .notice-item.inactive { opacity: .45; }
-  .pill { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    padding: 3px 10px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
-  #pin-gate { text-align: center; padding: 80px 20px; }
-  #pin-gate input { font-size: 24px; text-align: center; letter-spacing: 8px; width: 200px;
-    padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.25);
-    background: rgba(0,0,0,.35); color: #fff; }
-  #kiosk-link-out { word-break: break-all; background: rgba(0,0,0,.35); padding: 12px;
-    border-radius: 8px; font-size: 13px; margin-top: 10px; }
   .hint { font-size: 13px; opacity: .65; margin-top: 8px; line-height: 1.5; }
+  /* PIN gate */
+  #pin-gate { text-align: center; padding: 80px 20px; }
+  #pin-gate input {
+    font-size: 24px; text-align: center; letter-spacing: 8px; width: 220px;
+    padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.25);
+    background: rgba(0,0,0,.35); color: #fff;
+  }
+  /* Field wrapper with save tick */
+  .field-wrap { position: relative; display: flex; align-items: center; }
+  .field-wrap input, .field-wrap textarea { flex: 1; }
+  .save-tick {
+    display: none; margin-left: 8px; flex-shrink: 0;
+    width: 26px; height: 26px; line-height: 26px; text-align: center;
+    background: #22c55e; color: #fff; border-radius: 50%;
+    font-size: 15px; font-weight: bold;
+  }
+  .save-tick.show { display: inline-block; }
+  /* Progress bars */
+  .progress-wrap { display: none; margin-top: 10px; }
+  .progress-track { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0%; border-radius: 4px; transition: width .2s; }
+  #img-progress-bar { background: linear-gradient(90deg,#7c3aed,#a78bfa); }
+  #sync-progress-bar { background: linear-gradient(90deg,#22c55e,#4ade80); }
+  .progress-text { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  /* Toast */
+  #toast {
+    display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.25); z-index: 9999; font-size: 14px; max-width: 90%;
+  }
+  #live-saved { color: #3fae6a; display: none; margin-left: 10px; font-size: 14px; }
 </style>
 </head>
 <body>
-<!-- ================= ADMIN VIEW ================= -->
 <div id="admin">
+
+  <!-- PIN gate -->
   <div id="pin-gate">
     <h2 style="margin-bottom:18px;">Admin Panel</h2>
     <p class="hint" style="margin-bottom:14px;">Enter PIN to continue</p>
     <input type="password" id="pin-input" maxlength="12" inputmode="numeric" placeholder="••••">
     <div><button class="btn primary" id="pin-go" style="margin-top:16px;">Unlock</button></div>
     <p class="hint" id="pin-err" style="color:#e05252; display:none;">Wrong PIN, try again.</p>
-    <p class="hint">Default PIN is <b>1234</b> — change it below after unlocking.</p>
-    <div><a class="btn ghost" href="index.html">← Back to display</a></div>
+    <div style="margin-top:16px;"><a class="btn ghost" href="index.html">← Back to display</a></div>
   </div>
 
+  <!-- Main panel -->
   <div id="admin-panel" style="display:none;">
     <h2 style="margin-bottom:6px;">Admin Panel</h2>
-
-    <div class="card">
-      <h3>Notices</h3>
-      <div id="notice-list"></div>
-      <h3 style="margin-top:18px;">Add notice</h3>
-      <label>Title</label>
-      <div class="field-wrap"><input type="text" id="new-title" placeholder="Notice title"><span class="save-tick" id="tick-new-title">✓</span></div>
-      <label>Details</label>
-      <div class="field-wrap"><textarea id="new-body" placeholder="Notice details..."></textarea><span class="save-tick" id="tick-new-body">✓</span></div>
-      <label>Photo (optional)</label>
-      <div class="field-wrap"><input type="text" id="new-imgurl" placeholder="Paste an image link..."><span class="save-tick" id="tick-new-imgurl">✓</span></div>
-      <input type="file" id="new-imgfile" accept="image/*" style="margin-top:8px;">
-      <div id="img-progress" style="display:none; margin-top:10px;">
-        <div style="height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
-          <div id="img-progress-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#7c3aed,#a78bfa); border-radius:4px; transition:width .2s;"></div>
-        </div>
-        <div id="img-progress-text" style="font-size:12px; color:#64748b; margin-top:4px;">Uploading… 0%</div>
-      </div>
-      <img id="new-imgprev" alt="" style="display:none; max-width:180px; margin-top:10px; border-radius:8px;">
-      <div class="row">
-        <div><label>&nbsp;</label><button class="btn primary" id="add-notice">Add</button></div>
-      </div>
-    </div>
-
-    <span id="live-saved" style="color:#3fae6a; display:none; margin-left:10px;">Synced ✓</span>
-    <div id="sync-progress" style="display:none; margin-top:8px;">
-      <div style="height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
-        <div id="sync-progress-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#22c55e,#4ade80); border-radius:4px; transition:width .2s;"></div>
-      </div>
-      <div id="sync-progress-text" style="font-size:12px; color:#64748b; margin-top:4px;">Syncing… 0%</div>
-    </div>
-    <div id="toast" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1e293b; color:#fff; padding:12px 24px; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.25); z-index:9999; font-size:14px;"></div>
     <p class="hint">Changes save automatically.</p>
 
-    <div class="card" style="margin-top:24px;">
-      <h3>Settings</h3>
-      <div class="row">
-        <div><label>Rotate every (seconds)</label><div class="field-wrap"><input type="number" id="set-rot" min="4" max="120"><span class="save-tick" id="tick-set-rot">✓</span></div></div>
+    <span id="live-saved">Synced ✓</span>
+    <div id="sync-progress" class="progress-wrap">
+      <div class="progress-track"><div id="sync-progress-bar" class="progress-fill"></div></div>
+      <div id="sync-progress-text" class="progress-text">Syncing… 0%</div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Notices</h3>
+      <div id="notice-list"></div>
+
+      <h3 style="margin-top:18px;">Add notice</h3>
+      <label>Title</label>
+      <div class="field-wrap">
+        <input type="text" id="new-title" placeholder="Notice title" autocomplete="off">
+        <span class="save-tick" id="tick-new-title">✓</span>
       </div>
-      <p class="hint" style="margin-top:12px;">Admin PIN is set securely in the Vercel dashboard (not stored here).</p>
+      <label>Details</label>
+      <div class="field-wrap">
+        <textarea id="new-body" placeholder="Notice details..."></textarea>
+        <span class="save-tick" id="tick-new-body">✓</span>
+      </div>
+      <label>Photo (optional)</label>
+      <div class="field-wrap">
+        <input type="text" id="new-imgurl" placeholder="Paste an image link..." autocomplete="off">
+        <span class="save-tick" id="tick-new-imgurl">✓</span>
+      </div>
+      <input type="file" id="new-imgfile" accept="image/*" style="margin-top:8px;">
+      <div id="img-progress" class="progress-wrap">
+        <div class="progress-track"><div id="img-progress-bar" class="progress-fill"></div></div>
+        <div id="img-progress-text" class="progress-text">Uploading… 0%</div>
+      </div>
+      <img id="new-imgprev" alt="" style="display:none; max-width:180px; margin-top:10px; border-radius:8px;">
+      <div><button class="btn primary" id="add-notice" style="margin-top:12px;">Add Notice</button></div>
+    </div>
+
+    <div class="card">
+      <h3>Settings</h3>
+      <label>Rotate every (seconds)</label>
+      <div class="field-wrap">
+        <input type="number" id="set-rot" min="4" max="120">
+        <span class="save-tick" id="tick-set-rot">✓</span>
+      </div>
+      <p class="hint" style="margin-top:12px;">Admin PIN is managed securely on the server, not stored here.</p>
     </div>
   </div>
 </div>
 
+<div id="toast"></div>
+
 <script>
 "use strict";
-/* ============ storage & config ============ */
-var LS_KEY = "noticeboard.v1";
-var DEFAULT_QR = "https://efftime.com/break_log/gate.php";
+/* ============================================================
+   NOTICE BOARD ADMIN — clean rebuild
+   - PIN verified server-side (/api/verify-pin), never in this page
+   - Config synced via /api/sync (PIN stripped server-side too)
+   - Two-click delete (no native confirm())
+   - Real sync progress with server verification
+   ============================================================ */
+var LS_KEY = "noticeboard.v2"; /* v2: pin removed from stored config */
 
-/* ============ Firebase live sync (optional) ============
-   Same config as the display page. When filled in, every save here
-   pushes to the cloud and the kiosk screen updates instantly —
-   no refresh, no new kiosk link. Photos upload to Firebase Storage;
-   replacing/removing a photo deletes the old file (no orphans). */
-var FIREBASE_CONFIG = {
-  apiKey: "PASTE_API_KEY",
-  authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://PASTE_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "PASTE_PROJECT_ID",
-  storageBucket: "PASTE_PROJECT_ID.appspot.com",
-  appId: "PASTE_APP_ID"
-};
-function firebaseReady() {
-  return FIREBASE_CONFIG.apiKey.indexOf("PASTE") !== 0 && typeof firebase !== "undefined";
+/* ---------- config ---------- */
+function defaultConfig() {
+  return {
+    title: "Notice Board",
+    bannerTitle: "Notice Board",
+    logoUrl: "logo.png",
+    theme: "dark",
+    showQr: true,
+    qrLabel: "Breaktime QR Code",
+    qrUrl: "https://efftime.com/break_log/gate.php",
+    showClocks: true,
+    showDate: true,
+    clock1Label: "INDIA",
+    clock1Tz: "Asia/Kolkata",
+    clock2Label: "UAE",
+    clock2Tz: "Asia/Dubai",
+    rotationSecs: 10,
+    notices: []
+  };
 }
-function fbApp() {
-  if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-  return firebase.app();
-}
-/* Push current config to the live database (no-op until configured). */
-function pushLive() {
-  if (!firebaseReady()) return;
+function loadConfig() {
   try {
-    fbApp().database().ref("noticeboard/config").set(JSON.parse(JSON.stringify(CFG)));
-    var el = document.getElementById("live-saved");
-    if (el) { el.style.display = ""; setTimeout(function () { el.style.display = "none"; }, 2500); }
+    var raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      var c = Object.assign(defaultConfig(), JSON.parse(raw));
+      delete c.pin; /* never keep a PIN locally */
+      return c;
+    }
   } catch (e) {}
+  return defaultConfig();
 }
-function setImgProgress(pct, text) {
-  var wrap = document.getElementById("img-progress");
-  var bar = document.getElementById("img-progress-bar");
-  var txt = document.getElementById("img-progress-text");
-  if (pct == null) { wrap.style.display = "none"; return; }
-  wrap.style.display = "";
-  bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
-  txt.textContent = text || ("Uploading… " + Math.round(pct) + "%");
-}
-function uploadPhotoFile(file, cb) {
+/* Returns true on success, false when storage is full/blocked */
+function saveConfig(cfg) {
   try {
-    var safe = (file.name || "photo").replace(/[^a-zA-Z0-9.\-_]/g, "_");
-    var path = "noticeboard/photos/" + Date.now() + "_" + safe;
-    var ref = fbApp().storage().ref(path);
-    var task = ref.put(file);
-    task.on("state_changed",
-      function (snap) {
-        var pct = snap.totalBytes ? (snap.bytesTransferred / snap.totalBytes) * 100 : 0;
-        setImgProgress(pct);
-      },
-      function () { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); },
-      function () {
-        setImgProgress(100, "Processing…");
-        ref.getDownloadURL().then(function (url) { setImgProgress(null); cb(url, path); })
-          .catch(function () { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); });
-      });
-  } catch (e) { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); }
+    var copy = JSON.parse(JSON.stringify(cfg));
+    delete copy.pin;
+    localStorage.setItem(LS_KEY, JSON.stringify(copy));
+    return true;
+  } catch (e) { return false; }
 }
-function setSyncProgress(pct, text) {
-  var wrap = document.getElementById("sync-progress");
-  var bar = document.getElementById("sync-progress-bar");
-  var txt = document.getElementById("sync-progress-text");
-  if (pct == null) { wrap.style.display = "none"; return; }
-  wrap.style.display = "";
-  bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
-  txt.textContent = text || ("Syncing… " + Math.round(pct) + "%");
+var CFG = loadConfig();
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-function doDeleteNotice(idx) {
-  try {
-    var n = CFG.notices[idx];
-    if (!n) return;
-    var delTitle = n.title;
-    try { deletePhotoPath(n.imgPath); } catch (e) {}
-    CFG.notices.splice(idx, 1);
-    saveConfig(CFG);
-    try { pushLive(); } catch (e) {}
-    renderNoticeList();
-    showToast("Notice deleted: " + delTitle);
-    try { syncToKiosk(); } catch (e) {}
-  } catch (e) {
-    showToast("Delete failed — please try again.");
-  }
+
+/* ---------- toast ---------- */
+var toastTimer = null;
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.style.display = "none"; }, 3500);
 }
+
+/* ---------- save ticks ---------- */
 function showTick(fieldId) {
   var t = document.getElementById("tick-" + fieldId);
   if (t) t.classList.add("show");
@@ -224,335 +219,310 @@ function hideTick(fieldId) {
   var t = document.getElementById("tick-" + fieldId);
   if (t) t.classList.remove("show");
 }
-function hideAllTicks() {
-  document.querySelectorAll(".save-tick.show").forEach(function (t) { t.classList.remove("show"); });
+
+/* ---------- progress bars ---------- */
+function setImgProgress(pct, text) {
+  var wrap = document.getElementById("img-progress");
+  var bar = document.getElementById("img-progress-bar");
+  var txt = document.getElementById("img-progress-text");
+  if (pct == null) { wrap.style.display = "none"; return; }
+  wrap.style.display = "block";
+  bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
+  txt.textContent = text || ("Uploading… " + Math.round(pct) + "%");
 }
-function showToast(msg) {
-  var t = document.getElementById("toast");
-  t.textContent = msg;
-  t.style.display = "";
-  setTimeout(function () { t.style.display = "none"; }, 3000);
-}
-/* Always delete the old photo when replaced or removed — no orphans. */
-function deletePhotoPath(path) {
-  if (!path || !firebaseReady()) return;
-  try { fbApp().storage().ref(path).delete().catch(function () {}); } catch (e) {}
+function setSyncProgress(pct, text) {
+  var wrap = document.getElementById("sync-progress");
+  var bar = document.getElementById("sync-progress-bar");
+  var txt = document.getElementById("sync-progress-text");
+  if (pct == null) { wrap.style.display = "none"; return; }
+  wrap.style.display = "block";
+  bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
+  txt.textContent = text || ("Syncing… " + Math.round(pct) + "%");
 }
 
-function defaultConfig() {
-  return {
-    pin: "1234",
-    title: "Notice Board",
-    bannerTitle: "Notice Board",
-    logoUrl: "logo.png",
-    showClocks: true,
-    clock1Label: "INDIA",
-    clock1Tz: "Asia/Kolkata",
-    clock2Label: "UAE",
-    clock2Tz: "Asia/Dubai",
-    showDate: true,
-    showQr: true,
-    qrLabel: "Breaktime QR Code",
-    qrUrl: "https://efftime.com/break_log/gate.php",
-    theme: "light",
-    rotationSecs: 10,
-    notices: [
-      { id: "n1", title: "Welcome to the Notice Board", body: "This is a sample notice.\nReplace it on the admin page (PIN 1234).", tag: "info", active: true },
-      { id: "n2", title: "Sample: Team meeting at 4 PM", body: "Conference room. This is a sample — delete it on the admin page.", tag: "event", active: true }
-    ]
-  };
-}
-function b64e(s) {
-  return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-function b64d(s) {
-  s = s.replace(/-/g, "+").replace(/_/g, "/");
-  while (s.length % 4) s += "=";
-  return decodeURIComponent(escape(atob(s)));
-}
-function loadConfig() {
-  var h = location.hash || "";
-  if (h.indexOf("#c=") === 0) {
-    try { return Object.assign(defaultConfig(), JSON.parse(b64d(h.slice(3)))); } catch (e) {}
-  }
+/* ---------- server sync ----------
+   POSTs config to /api/sync. onOk fires only after the server
+   confirms the GitHub commit (ok:true + sha in response). */
+function syncToKiosk(onOk) {
   try {
-    var raw = localStorage.getItem(LS_KEY);
-    if (raw) return Object.assign(defaultConfig(), JSON.parse(raw));
-  } catch (e) {}
-  return defaultConfig();
-}
-function saveConfig(cfg) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)); return true; }
-  catch (e) { return false; }
-}
-var CFG = loadConfig();
-function esc(s) {
-  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    var copy = JSON.parse(JSON.stringify(CFG));
+    delete copy.pin;
+    var payload = JSON.stringify(copy);
+    if (payload.length > 4 * 1024 * 1024) {
+      showToast("Too large to sync — use a smaller photo.");
+      var el2 = document.getElementById("live-saved");
+      el2.style.display = ""; el2.textContent = "Sync failed — too large"; el2.style.color = "#e05252";
+      setTimeout(function () { el2.style.display = "none"; el2.style.color = ""; }, 4000);
+      setSyncProgress(null);
+      return;
+    }
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/sync", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    setSyncProgress(0, "Starting sync…");
+    xhr.upload.onprogress = function (e) {
+      if (e.lengthComputable && e.total > 0) {
+        var pct = Math.round((e.loaded / e.total) * 100);
+        if (pct < 100) setSyncProgress(pct, "Uploading… " + pct + "%");
+        else setSyncProgress(100, "Waiting for server…");
+      }
+    };
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      var el = document.getElementById("live-saved");
+      if (xhr.status === 200) {
+        var verified = false;
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          verified = resp && resp.ok === true && !!resp.sha;
+        } catch (e) {}
+        if (verified) {
+          setSyncProgress(100, "Synced ✓");
+          setTimeout(function () { setSyncProgress(null); }, 2000);
+          el.style.display = ""; el.textContent = "Synced to display ✓"; el.style.color = "";
+          if (onOk) onOk();
+        } else {
+          setSyncProgress(null);
+          el.style.display = ""; el.textContent = "Sync unverified — check display"; el.style.color = "#e05252";
+        }
+      } else {
+        setSyncProgress(null);
+        el.style.display = ""; el.textContent = "Sync failed (" + xhr.status + ")"; el.style.color = "#e05252";
+      }
+      setTimeout(function () { el.style.display = "none"; el.style.color = ""; }, 4000);
+    };
+    xhr.onerror = function () {
+      setSyncProgress(null);
+      showToast("Sync failed — network error.");
+    };
+    xhr.send(payload);
+  } catch (e) {
+    setSyncProgress(null);
+    showToast("Sync failed — please try again.");
+  }
 }
 
-/* ============ admin view ============ */
-function displayURL() {
-  var base = location.href.split("#")[0];
-  base = base.slice(0, base.lastIndexOf("/") + 1) + "index.html";
-  return base + "#c=" + b64e(JSON.stringify(CFG));
-}
+/* ---------- notice list ---------- */
 function renderNoticeList() {
   var wrap = document.getElementById("notice-list");
   wrap.innerHTML = "";
+  if (!CFG.notices.length) {
+    wrap.innerHTML = '<p class="hint">No notices yet — add one below.</p>';
+    return;
+  }
   CFG.notices.forEach(function (n, i) {
     var d = document.createElement("div");
-    d.className = "notice-item" + (n.active ? "" : " inactive");
+    d.className = "notice-item" + (n.active === false ? " inactive" : "");
     d.innerHTML =
-      (n.img ? '<img src="' + esc(n.img) + '" alt="" style="max-width:120px;border-radius:8px;margin-bottom:8px;display:block;">' : "") +
-      '<span class="ni-title">' + esc(n.title) + '</span><span class="pill tag ' + esc(n.tag || "info") + '">' + esc(n.tag || "info") + "</span>" +
+      '<div class="ni-title">' + esc(n.title) + (n.active === false ? ' <span class="hint">(hidden)</span>' : "") + "</div>" +
+      (n.img ? '<div class="hint">📷 photo attached</div>' : "") +
       '<div class="ni-body">' + esc(n.body) + "</div>" +
-      '<button class="btn small ghost" data-a="toggle">' + (n.active ? "Hide" : "Show") + "</button>" +
-      '<button class="btn small ghost" data-a="edit">Edit</button>' +
+      '<button class="btn small ghost" data-a="toggle">' + (n.active === false ? "Show" : "Hide") + "</button>" +
       '<button class="btn small ghost" data-a="up">▲</button>' +
       '<button class="btn small ghost" data-a="down">▼</button>' +
       '<button class="btn small danger" data-a="del">Delete</button>';
     d.querySelectorAll("button").forEach(function (b) {
-      b.onclick = function () {
-        var a = b.getAttribute("data-a");
-        if (a === "del") {
-          /* Two-click confirm: first click arms, second click deletes.
-             Avoids native confirm() which is unreliable. */
-          if (b.getAttribute("data-confirm") === "1") {
-            doDeleteNotice(i);
-          } else {
-            b.setAttribute("data-confirm", "1");
-            b.textContent = "Sure?";
-            b.style.background = "#dc2626";
-            b.style.color = "#fff";
-            setTimeout(function () {
-              b.setAttribute("data-confirm", "");
-              b.textContent = "Delete";
-              b.style.background = "";
-              b.style.color = "";
-            }, 3000);
-          }
-          return;
-        }
-        else if (a === "toggle") { n.active = !n.active; }
-        else if (a === "up" && i > 0) { CFG.notices.splice(i - 1, 0, CFG.notices.splice(i, 1)[0]); }
-        else if (a === "down" && i < CFG.notices.length - 1) { CFG.notices.splice(i + 1, 0, CFG.notices.splice(i, 1)[0]); }
-        else if (a === "edit") {
-          var t = prompt("Title:", n.title); if (t === null) return;
-          var bo = prompt("Details:", n.body); if (bo === null) return;
-          var tg = prompt("Tag (info / important / urgent / event):", n.tag || "info");
-          n.title = t; n.body = bo;
-          if (["info", "important", "urgent", "event"].indexOf((tg || "").toLowerCase()) >= 0) n.tag = tg.toLowerCase();
-          var im = prompt("Photo: paste an image URL, type 'none' to remove, or leave empty to keep the current photo.", "");
-          if (im !== null) {
-            im = im.trim();
-            if (im.toLowerCase() === "none") { deletePhotoPath(n.imgPath); n.img = ""; n.imgPath = ""; }
-            else if (im) { deletePhotoPath(n.imgPath); n.img = im; n.imgPath = ""; }
-          }
-        }
-        saveConfig(CFG); pushLive(); syncToKiosk(); renderNoticeList();
-      };
+      b.onclick = function () { handleNoticeAction(b, n, i); };
     });
     wrap.appendChild(d);
   });
-  if (!CFG.notices.length) wrap.innerHTML = '<p class="hint">No notices yet — add one below.</p>';
 }
-function initAdmin() {
-  var unlock = function () {
-    document.getElementById("pin-gate").style.display = "none";
-    document.getElementById("admin-panel").style.display = "";
-    document.getElementById("set-rot").value = CFG.rotationSecs || 10;
-    renderNoticeList();
-    /* Pull from server only if local is empty (fresh device) —
-       never overwrite local changes, or deletes will "come back". */
-    try {
-      var raw = localStorage.getItem(LS_KEY);
-      if (!raw) refreshFromServer();
-    } catch (e) {}
-  };
-  /* Fetch the server's config and merge — keeps admin in sync */
-  function refreshFromServer() {
-    try {
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", "https://raw.githubusercontent.com/Anandh-S20/notice-board/main/config.json?_=" + Date.now(), true);
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState !== 4 || xhr.status !== 200) return;
-        try {
-          var serverCfg = JSON.parse(xhr.responseText);
-          if (serverCfg && Array.isArray(serverCfg.notices)) {
-            CFG = Object.assign(defaultConfig(), serverCfg);
-            saveConfig(CFG);
-            document.getElementById("set-rot").value = CFG.rotationSecs || 10;
-            renderNoticeList();
-          }
-        } catch (e) {}
-      };
-      xhr.send();
-    } catch (e) {}
-  }
-  /* Skip PIN if already unlocked this session */
-  try {
-    if (sessionStorage.getItem("nb_unlocked") === "1") { unlock(); }
-  } catch (e) {}
-  var go = function () {
-    var v = document.getElementById("pin-input").value;
-    /* Verify PIN server-side — the real PIN is never in the page */
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/verify-pin", true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState !== 4) return;
-      if (xhr.status === 200) {
-        try { sessionStorage.setItem("nb_unlocked", "1"); } catch (e) {}
-        unlock();
-      } else {
-        document.getElementById("pin-err").style.display = "";
-      }
-    };
-    xhr.send(JSON.stringify({ pin: v }));
-  };
-  document.getElementById("pin-go").onclick = go;
-  document.getElementById("pin-input").addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
 
-  var newImgData = "";
-  var newImgPath = "";
-  function setNewImgPreview(src) {
-    var p = document.getElementById("new-imgprev");
-    if (src) { p.src = src; p.style.display = ""; } else { p.style.display = "none"; }
+function handleNoticeAction(btn, n, i) {
+  var a = btn.getAttribute("data-a");
+  if (a === "del") {
+    /* Two-click inline confirm — no native confirm() dialog */
+    if (btn.getAttribute("data-armed") === "1") {
+      doDeleteNotice(i);
+    } else {
+      btn.setAttribute("data-armed", "1");
+      btn.textContent = "Sure?";
+      btn.classList.add("armed");
+      setTimeout(function () {
+        btn.setAttribute("data-armed", "");
+        btn.textContent = "Delete";
+        btn.classList.remove("armed");
+      }, 3000);
+    }
+    return;
   }
-  document.getElementById("new-imgurl").addEventListener("input", function () {
-    newImgData = ""; newImgPath = "";
-    setNewImgPreview(this.value.trim());
+  if (a === "toggle") { n.active = (n.active === false); }
+  else if (a === "up" && i > 0) { CFG.notices.splice(i - 1, 0, CFG.notices.splice(i, 1)[0]); }
+  else if (a === "down" && i < CFG.notices.length - 1) { CFG.notices.splice(i + 1, 0, CFG.notices.splice(i, 1)[0]); }
+  else { return; }
+  persistAndSync();
+  renderNoticeList();
+}
+
+function doDeleteNotice(idx) {
+  var n = CFG.notices[idx];
+  if (!n) return;
+  var delTitle = n.title || "notice";
+  CFG.notices.splice(idx, 1);
+  if (!saveConfig(CFG)) {
+    showToast("Could not save — storage issue. Please try again.");
+    return;
+  }
+  renderNoticeList(); /* disappear immediately */
+  showToast("Notice deleted: " + delTitle);
+  syncToKiosk(); /* sync in background */
+}
+
+function persistAndSync(onOk) {
+  if (!saveConfig(CFG)) {
+    showToast("Could not save locally — storage full?");
+    return;
+  }
+  syncToKiosk(onOk);
+}
+
+/* ---------- add notice ---------- */
+var newImgData = "";
+
+function setNewImgPreview(src) {
+  var p = document.getElementById("new-imgprev");
+  if (src) { p.src = src; p.style.display = ""; }
+  else { p.src = ""; p.style.display = "none"; }
+}
+
+function initAddForm() {
+  ["new-title", "new-body", "new-imgurl"].forEach(function (id) {
+    var el = document.getElementById(id);
+    el.addEventListener("input", function () { hideTick(id); });
   });
+
+  document.getElementById("new-imgurl").addEventListener("input", function () {
+    if (this.value.trim()) {
+      document.getElementById("new-imgfile").value = "";
+      newImgData = "";
+      setNewImgPreview(this.value.trim());
+    } else {
+      setNewImgPreview("");
+    }
+  });
+
+  /* Photo file → original quality data URL (no compression, per owner) */
   document.getElementById("new-imgfile").addEventListener("change", function () {
     var f = this.files && this.files[0];
     if (!f) return;
     document.getElementById("new-imgurl").value = "";
-    if (firebaseReady()) {
-      setNewImgPreview("");
-      uploadPhotoFile(f, function (url, path) { newImgData = url; newImgPath = path; setNewImgPreview(url); });
-      return;
-    }
+    hideTick("new-imgurl");
     var reader = new FileReader();
     setImgProgress(10, "Reading photo…");
     reader.onload = function () {
-      setImgProgress(90, "Processing…");
-      /* Store original quality — no compression */
-      newImgData = reader.result;
+      setImgProgress(95, "Processing…");
+      newImgData = reader.result; /* original quality */
       setImgProgress(null);
       setNewImgPreview(newImgData);
-      if (newImgData.length > 1024 * 1024) {
-        showToast("Photo is large (" + Math.round(newImgData.length / 1024 / 1024 * 10) / 10 + "MB) — it may fail to save.");
-      }
+      var mb = newImgData.length / 1024 / 1024;
+      if (mb > 1) showToast("Photo is large (" + (Math.round(mb * 10) / 10) + " MB) — may fail to sync.");
+    };
+    reader.onerror = function () {
+      setImgProgress(null);
+      showToast("Could not read photo — try another file.");
     };
     reader.readAsDataURL(f);
   });
 
   document.getElementById("add-notice").onclick = function () {
-    var t = document.getElementById("new-title").value.trim(),
-        b = document.getElementById("new-body").value.trim();
-    if (!t) { alert("Give the notice a title."); return; }
+    var t = document.getElementById("new-title").value.trim();
+    var b = document.getElementById("new-body").value.trim();
+    if (!t) { showToast("Give the notice a title first."); return; }
     var img = newImgData || document.getElementById("new-imgurl").value.trim();
-    CFG.notices.push({ id: "n" + Date.now(), title: t, body: b, img: img, imgPath: newImgPath, active: true });
+    CFG.notices.push({ id: "n" + Date.now(), title: t, body: b, img: img, active: true });
     document.getElementById("new-title").value = "";
     document.getElementById("new-body").value = "";
     document.getElementById("new-imgurl").value = "";
     document.getElementById("new-imgfile").value = "";
-    newImgData = ""; newImgPath = ""; setNewImgPreview("");
+    newImgData = "";
+    setNewImgPreview("");
     if (!saveConfig(CFG)) {
-      showToast("Could not save locally (storage full) — try a smaller photo.");
       CFG.notices.pop();
       renderNoticeList();
+      showToast("Could not save — storage full? Try a smaller photo.");
       return;
     }
-    pushLive();
-    syncToKiosk(function () {
+    renderNoticeList();
+    persistAndSync(function () {
       showToast("Notice added: " + t);
       showTick("new-title"); showTick("new-body"); showTick("new-imgurl");
     });
-    renderNoticeList();
   };
-
-  function collect() {
-    CFG.title = "Notice Board";
-    var r = parseInt(document.getElementById("set-rot").value, 10);
-    CFG.rotationSecs = isNaN(r) ? 10 : Math.max(4, Math.min(120, r));
-  }
-  /* Auto-sync on any setting change — no Save button needed */
-  function autoSync() {
-    collect(); saveConfig(CFG); pushLive();
-    syncToKiosk(function () { showTick("set-rot"); });
-  }
-  ["set-rot"].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) {
-      el.addEventListener("change", autoSync);
-      el.addEventListener("input", function () { hideTick(id); });
-    }
-  });
-  /* Hide ticks while typing in the add-notice form */
-  ["new-title", "new-body", "new-imgurl"].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) el.addEventListener("input", function () { hideTick(id); });
-  });
-  /* Push config to the shared kiosk via the sync API (no token in the page).
-     onOk fires only after the server confirms the sync. */
-  function syncToKiosk(onOk) {
-    try {
-      var payload = JSON.stringify(CFG);
-      /* Vercel rejects payloads over ~4.5MB — warn before sending */
-      if (payload.length > 4 * 1024 * 1024) {
-        showToast("Too large to sync (" + Math.round(payload.length / 1024 / 1024 * 10) / 10 + "MB). Use a smaller photo.");
-        var el2 = document.getElementById("live-saved");
-        el2.style.display = ""; el2.textContent = "Sync failed — too large"; el2.style.color = "#d33";
-        setTimeout(function () { el2.style.display = "none"; el2.style.color = ""; }, 4000);
-        return;
-      }
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", "/api/sync", true);
-      xhr.setRequestHeader("Content-Type", "application/json");
-      setSyncProgress(0, "Starting sync…");
-      xhr.upload.onprogress = function (e) {
-        if (e.lengthComputable && e.total > 0) {
-          /* Real upload progress: bytes sent vs total bytes */
-          var pct = Math.round((e.loaded / e.total) * 100);
-          if (pct < 100) setSyncProgress(pct, "Uploading… " + pct + "%");
-          else setSyncProgress(100, "Waiting for server…");
-        }
-      };
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState !== 4) return;
-        var el = document.getElementById("live-saved");
-        if (xhr.status === 200) {
-          /* Verify the server actually committed — don't trust status alone */
-          var verified = false;
-          try {
-            var resp = JSON.parse(xhr.responseText);
-            verified = resp && resp.ok === true && !!resp.sha;
-          } catch (e) {}
-          if (verified) {
-            setSyncProgress(100, "Synced ✓");
-            setTimeout(function () { setSyncProgress(null); }, 2000);
-            el.style.display = ""; el.textContent = "Synced to display ✓";
-            if (onOk) onOk();
-          } else {
-            setSyncProgress(null);
-            el.style.display = ""; el.textContent = "Sync unverified — check display"; el.style.color = "#d33";
-          }
-        }
-        else {
-          setSyncProgress(null);
-          el.style.display = ""; el.textContent = "Sync failed (" + xhr.status + ") — display will use last saved"; el.style.color = "#d33";
-        }
-        setTimeout(function () { el.style.display = "none"; el.style.color = ""; }, 4000);
-      };
-      xhr.send(payload);
-    } catch (e) {}
-  }
 }
 
-/* ============ boot ============ */
-initAdmin();
+/* ---------- settings ---------- */
+function initSettings() {
+  var rot = document.getElementById("set-rot");
+  rot.value = CFG.rotationSecs || 10;
+  rot.addEventListener("input", function () { hideTick("set-rot"); });
+  rot.addEventListener("change", function () {
+    var r = parseInt(rot.value, 10);
+    CFG.rotationSecs = isNaN(r) ? 10 : Math.max(4, Math.min(120, r));
+    persistAndSync(function () { showTick("set-rot"); });
+  });
+}
+
+/* ---------- PIN gate (server-side) ---------- */
+function initPinGate() {
+  var gate = document.getElementById("pin-gate");
+  var panel = document.getElementById("admin-panel");
+
+  function unlock() {
+    gate.style.display = "none";
+    panel.style.display = "";
+    document.getElementById("set-rot").value = CFG.rotationSecs || 10;
+    renderNoticeList();
+  }
+
+  /* Skip PIN if already unlocked this tab session */
+  try {
+    if (sessionStorage.getItem("nb_unlocked") === "1") { unlock(); return; }
+  } catch (e) {}
+
+  function go() {
+    var v = document.getElementById("pin-input").value;
+    if (!v) return;
+    var btn = document.getElementById("pin-go");
+    btn.textContent = "Checking…";
+    btn.disabled = true;
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/verify-pin", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      btn.textContent = "Unlock";
+      btn.disabled = false;
+      var ok = false;
+      if (xhr.status === 200) {
+        try { ok = JSON.parse(xhr.responseText).ok === true; } catch (e) {}
+      }
+      if (ok) {
+        try { sessionStorage.setItem("nb_unlocked", "1"); } catch (e) {}
+        document.getElementById("pin-err").style.display = "none";
+        unlock();
+      } else {
+        document.getElementById("pin-err").style.display = "";
+      }
+    };
+    xhr.onerror = function () {
+      btn.textContent = "Unlock";
+      btn.disabled = false;
+      document.getElementById("pin-err").textContent = "Server unreachable — try again.";
+      document.getElementById("pin-err").style.display = "";
+    };
+    xhr.send(JSON.stringify({ pin: v }));
+  }
+
+  document.getElementById("pin-go").onclick = go;
+  document.getElementById("pin-input").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") go();
+  });
+}
+
+/* ---------- boot ---------- */
+initPinGate();
+initAddForm();
+initSettings();
 </script>
 </body>
 </html>
