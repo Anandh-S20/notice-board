@@ -13,6 +13,6 @@
   "qrLabel": "Breaktime QR Code",
   "qrUrl": "https://efftime.com/break_log/gate.php",
   "theme": "light",
-  "rotationSecs": 11,
+  "rotationSecs": 10,
   "notices": []
 }
