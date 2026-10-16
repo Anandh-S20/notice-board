@@ -106,8 +106,8 @@
       <h3>Settings</h3>
       <div class="row">
         <div><label>Rotate every (seconds)</label><input type="number" id="set-rot" min="4" max="120"></div>
-        <div><label>Admin PIN</label><input type="text" id="set-pin" maxlength="12"></div>
       </div>
+      <p class="hint" style="margin-top:12px;">Admin PIN is set securely in the Vercel dashboard (not stored here).</p>
     </div>
   </div>
 </div>
@@ -267,7 +267,6 @@ function initAdmin() {
     document.getElementById("pin-gate").style.display = "none";
     document.getElementById("admin-panel").style.display = "";
     document.getElementById("set-rot").value = CFG.rotationSecs || 10;
-    document.getElementById("set-pin").value = CFG.pin || "";
     renderNoticeList();
   };
   /* Skip PIN if already unlocked this session */
@@ -276,12 +275,20 @@ function initAdmin() {
   } catch (e) {}
   var go = function () {
     var v = document.getElementById("pin-input").value;
-    if (v === CFG.pin) {
-      try { sessionStorage.setItem("nb_unlocked", "1"); } catch (e) {}
-      unlock();
-    } else {
-      document.getElementById("pin-err").style.display = "";
-    }
+    /* Verify PIN server-side — the real PIN is never in the page */
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/verify-pin", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status === 200) {
+        try { sessionStorage.setItem("nb_unlocked", "1"); } catch (e) {}
+        unlock();
+      } else {
+        document.getElementById("pin-err").style.display = "";
+      }
+    };
+    xhr.send(JSON.stringify({ pin: v }));
   };
   document.getElementById("pin-go").onclick = go;
   document.getElementById("pin-input").addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
@@ -339,12 +346,10 @@ function initAdmin() {
     CFG.title = "Notice Board";
     var r = parseInt(document.getElementById("set-rot").value, 10);
     CFG.rotationSecs = isNaN(r) ? 10 : Math.max(4, Math.min(120, r));
-    var p = document.getElementById("set-pin").value.trim();
-    if (p) CFG.pin = p;
   }
   /* Auto-sync on any setting change — no Save button needed */
   function autoSync() { collect(); saveConfig(CFG); pushLive(); syncToKiosk(); }
-  ["set-rot","set-pin"].forEach(function (id) {
+  ["set-rot"].forEach(function (id) {
     var el = document.getElementById(id);
     if (el) el.addEventListener("change", autoSync);
   });
