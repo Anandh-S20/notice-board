@@ -200,6 +200,22 @@ function setSyncProgress(pct, text) {
   bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
   txt.textContent = text || ("Syncing… " + Math.round(pct) + "%");
 }
+function doDeleteNotice(idx) {
+  try {
+    var n = CFG.notices[idx];
+    if (!n) return;
+    var delTitle = n.title;
+    try { deletePhotoPath(n.imgPath); } catch (e) {}
+    CFG.notices.splice(idx, 1);
+    saveConfig(CFG);
+    try { pushLive(); } catch (e) {}
+    renderNoticeList();
+    showToast("Notice deleted: " + delTitle);
+    try { syncToKiosk(); } catch (e) {}
+  } catch (e) {
+    showToast("Delete failed — please try again.");
+  }
+}
 function showTick(fieldId) {
   var t = document.getElementById("tick-" + fieldId);
   if (t) t.classList.add("show");
@@ -300,18 +316,23 @@ function renderNoticeList() {
       b.onclick = function () {
         var a = b.getAttribute("data-a");
         if (a === "del") {
-          if (confirm("Delete this notice?")) {
-            var delTitle = CFG.notices[i].title;
-            deletePhotoPath(CFG.notices[i].imgPath);
-            CFG.notices.splice(i, 1);
-            saveConfig(CFG); pushLive();
-            /* Re-render immediately so the notice disappears right away */
-            renderNoticeList();
-            showToast("Notice deleted: " + delTitle);
-            /* Sync in background — toast already shown */
-            syncToKiosk();
-            return;
+          /* Two-click confirm: first click arms, second click deletes.
+             Avoids native confirm() which is unreliable. */
+          if (b.getAttribute("data-confirm") === "1") {
+            doDeleteNotice(i);
+          } else {
+            b.setAttribute("data-confirm", "1");
+            b.textContent = "Sure?";
+            b.style.background = "#dc2626";
+            b.style.color = "#fff";
+            setTimeout(function () {
+              b.setAttribute("data-confirm", "");
+              b.textContent = "Delete";
+              b.style.background = "";
+              b.style.color = "";
+            }, 3000);
           }
+          return;
         }
         else if (a === "toggle") { n.active = !n.active; }
         else if (a === "up" && i > 0) { CFG.notices.splice(i - 1, 0, CFG.notices.splice(i, 1)[0]); }
