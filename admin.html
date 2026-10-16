@@ -257,7 +257,7 @@ function syncToKiosk(onOk) {
       return;
     }
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/sync", true);
+    xhr.open("POST", "https://notice-board-sooty.vercel.app/api/sync", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     setSyncProgress(0, "Starting sync…");
     xhr.upload.onprogress = function (e) {
@@ -486,7 +486,7 @@ function initPinGate() {
     btn.textContent = "Checking…";
     btn.disabled = true;
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/verify-pin", true);
+    xhr.open("POST", "https://notice-board-sooty.vercel.app/api/verify-pin", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== 4) return;
