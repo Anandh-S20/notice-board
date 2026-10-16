@@ -481,25 +481,38 @@ function initAdmin() {
       var xhr = new XMLHttpRequest();
       xhr.open("POST", "/api/sync", true);
       xhr.setRequestHeader("Content-Type", "application/json");
-      setSyncProgress(5, "Syncing…");
+      setSyncProgress(0, "Starting sync…");
       xhr.upload.onprogress = function (e) {
-        if (e.lengthComputable) {
-          var pct = (e.loaded / e.total) * 90;
-          setSyncProgress(pct, "Uploading… " + Math.round(pct) + "%");
+        if (e.lengthComputable && e.total > 0) {
+          /* Real upload progress: bytes sent vs total bytes */
+          var pct = Math.round((e.loaded / e.total) * 100);
+          if (pct < 100) setSyncProgress(pct, "Uploading… " + pct + "%");
+          else setSyncProgress(100, "Waiting for server…");
         }
       };
       xhr.onreadystatechange = function () {
         if (xhr.readyState !== 4) return;
         var el = document.getElementById("live-saved");
         if (xhr.status === 200) {
-          setSyncProgress(100, "Done ✓");
-          setTimeout(function () { setSyncProgress(null); }, 1500);
-          el.style.display = ""; el.textContent = "Synced to display ✓";
-          if (onOk) onOk();
+          /* Verify the server actually committed — don't trust status alone */
+          var verified = false;
+          try {
+            var resp = JSON.parse(xhr.responseText);
+            verified = resp && resp.ok === true && !!resp.sha;
+          } catch (e) {}
+          if (verified) {
+            setSyncProgress(100, "Synced ✓");
+            setTimeout(function () { setSyncProgress(null); }, 2000);
+            el.style.display = ""; el.textContent = "Synced to display ✓";
+            if (onOk) onOk();
+          } else {
+            setSyncProgress(null);
+            el.style.display = ""; el.textContent = "Sync unverified — check display"; el.style.color = "#d33";
+          }
         }
         else {
           setSyncProgress(null);
-          el.style.display = ""; el.textContent = "Sync failed — display will use last saved"; el.style.color = "#d33";
+          el.style.display = ""; el.textContent = "Sync failed (" + xhr.status + ") — display will use last saved"; el.style.color = "#d33";
         }
         setTimeout(function () { el.style.display = "none"; el.style.color = ""; }, 4000);
       };
