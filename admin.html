@@ -266,8 +266,8 @@ function renderNoticeList() {
             var delTitle = CFG.notices[i].title;
             deletePhotoPath(CFG.notices[i].imgPath);
             CFG.notices.splice(i, 1);
-            saveConfig(CFG); pushLive(); syncToKiosk();
-            showToast("Notice deleted: " + delTitle);
+            saveConfig(CFG); pushLive();
+            syncToKiosk(function () { showToast("Notice deleted: " + delTitle); });
           }
         }
         else if (a === "toggle") { n.active = !n.active; }
@@ -387,8 +387,9 @@ function initAdmin() {
     var el = document.getElementById(id);
     if (el) el.addEventListener("change", autoSync);
   });
-  /* Push config to the shared kiosk via the sync API (no token in the page) */
-  function syncToKiosk() {
+  /* Push config to the shared kiosk via the sync API (no token in the page).
+     onOk fires only after the server confirms the sync. */
+  function syncToKiosk(onOk) {
     try {
       var xhr = new XMLHttpRequest();
       xhr.open("POST", "/api/sync", true);
@@ -396,7 +397,10 @@ function initAdmin() {
       xhr.onreadystatechange = function () {
         if (xhr.readyState !== 4) return;
         var el = document.getElementById("live-saved");
-        if (xhr.status === 200) { el.style.display = ""; el.textContent = "Synced to display ✓"; }
+        if (xhr.status === 200) {
+          el.style.display = ""; el.textContent = "Synced to display ✓";
+          if (onOk) onOk();
+        }
         else { el.style.display = ""; el.textContent = "Sync failed — display will use last saved"; el.style.color = "#d33"; }
         setTimeout(function () { el.style.display = "none"; el.style.color = ""; }, 4000);
       };
