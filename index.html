@@ -322,6 +322,8 @@ function initDisplay() {
   setInterval(tickClock, 1000);
   window.addEventListener("resize", fitQrCrop);
   initLiveSync();
+  /* Auto-refresh every 5 minutes to pick up kiosk-link updates (no Firebase needed) */
+  setInterval(function () { location.reload(); }, 5 * 60 * 1000);
 }
 /* Live updates from Firebase (if configured). A #c= kiosk link always wins. */
 function initLiveSync() {
