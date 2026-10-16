@@ -363,8 +363,12 @@ function initAdmin() {
     document.getElementById("admin-panel").style.display = "";
     document.getElementById("set-rot").value = CFG.rotationSecs || 10;
     renderNoticeList();
-    /* Pull latest from server so admin is never stale */
-    refreshFromServer();
+    /* Pull from server only if local is empty (fresh device) —
+       never overwrite local changes, or deletes will "come back". */
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      if (!raw) refreshFromServer();
+    } catch (e) {}
   };
   /* Fetch the server's config and merge — keeps admin in sync */
   function refreshFromServer() {
