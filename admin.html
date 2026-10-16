@@ -10,6 +10,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  .field-wrap { position: relative; display: flex; align-items: center; }
+  .field-wrap input, .field-wrap textarea { flex: 1; }
+  .save-tick {
+    display: none; margin-left: 8px; flex-shrink: 0;
+    width: 26px; height: 26px; line-height: 26px; text-align: center;
+    background: #22c55e; color: #fff; border-radius: 50%;
+    font-size: 15px; font-weight: bold;
+  }
+  .save-tick.show { display: inline-block; }
   html, body { height: 100%; }
   body {
     font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
@@ -80,10 +89,12 @@
       <h3>Notices</h3>
       <div id="notice-list"></div>
       <h3 style="margin-top:18px;">Add notice</h3>
-      <label>Title</label><input type="text" id="new-title" placeholder="Notice title">
-      <label>Details</label><textarea id="new-body" placeholder="Notice details..."></textarea>
+      <label>Title</label>
+      <div class="field-wrap"><input type="text" id="new-title" placeholder="Notice title"><span class="save-tick" id="tick-new-title">✓</span></div>
+      <label>Details</label>
+      <div class="field-wrap"><textarea id="new-body" placeholder="Notice details..."></textarea><span class="save-tick" id="tick-new-body">✓</span></div>
       <label>Photo (optional)</label>
-      <input type="text" id="new-imgurl" placeholder="Paste an image link...">
+      <div class="field-wrap"><input type="text" id="new-imgurl" placeholder="Paste an image link..."><span class="save-tick" id="tick-new-imgurl">✓</span></div>
       <input type="file" id="new-imgfile" accept="image/*" style="margin-top:8px;">
       <div id="img-progress" style="display:none; margin-top:10px;">
         <div style="height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
@@ -104,7 +115,7 @@
     <div class="card" style="margin-top:24px;">
       <h3>Settings</h3>
       <div class="row">
-        <div><label>Rotate every (seconds)</label><input type="number" id="set-rot" min="4" max="120"></div>
+        <div><label>Rotate every (seconds)</label><div class="field-wrap"><input type="number" id="set-rot" min="4" max="120"><span class="save-tick" id="tick-set-rot">✓</span></div></div>
       </div>
       <p class="hint" style="margin-top:12px;">Admin PIN is set securely in the Vercel dashboard (not stored here).</p>
     </div>
@@ -173,6 +184,17 @@ function uploadPhotoFile(file, cb) {
           .catch(function () { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); });
       });
   } catch (e) { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); }
+}
+function showTick(fieldId) {
+  var t = document.getElementById("tick-" + fieldId);
+  if (t) t.classList.add("show");
+}
+function hideTick(fieldId) {
+  var t = document.getElementById("tick-" + fieldId);
+  if (t) t.classList.remove("show");
+}
+function hideAllTicks() {
+  document.querySelectorAll(".save-tick.show").forEach(function (t) { t.classList.remove("show"); });
 }
 function showToast(msg) {
   var t = document.getElementById("toast");
@@ -394,7 +416,10 @@ function initAdmin() {
       return;
     }
     pushLive();
-    syncToKiosk(function () { showToast("Notice added: " + t); });
+    syncToKiosk(function () {
+      showToast("Notice added: " + t);
+      showTick("new-title"); showTick("new-body"); showTick("new-imgurl");
+    });
     renderNoticeList();
   };
 
@@ -404,10 +429,21 @@ function initAdmin() {
     CFG.rotationSecs = isNaN(r) ? 10 : Math.max(4, Math.min(120, r));
   }
   /* Auto-sync on any setting change — no Save button needed */
-  function autoSync() { collect(); saveConfig(CFG); pushLive(); syncToKiosk(); }
+  function autoSync() {
+    collect(); saveConfig(CFG); pushLive();
+    syncToKiosk(function () { showTick("set-rot"); });
+  }
   ["set-rot"].forEach(function (id) {
     var el = document.getElementById(id);
-    if (el) el.addEventListener("change", autoSync);
+    if (el) {
+      el.addEventListener("change", autoSync);
+      el.addEventListener("input", function () { hideTick(id); });
+    }
+  });
+  /* Hide ticks while typing in the add-notice form */
+  ["new-title", "new-body", "new-imgurl"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener("input", function () { hideTick(id); });
   });
   /* Push config to the shared kiosk via the sync API (no token in the page).
      onOk fires only after the server confirms the sync. */
