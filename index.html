@@ -10,8 +10,12 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    font-family: "Inter", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-    background: linear-gradient(135deg, #f1f5f9 0%, #e8edf3 50%, #dde5ee 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", system-ui, Arial, sans-serif;
+    background:
+      radial-gradient(800px 600px at 15% 20%, rgba(167,139,250,.15) 0%, transparent 60%),
+      radial-gradient(700px 500px at 85% 30%, rgba(244,114,182,.12) 0%, transparent 60%),
+      radial-gradient(900px 700px at 50% 90%, rgba(96,165,250,.12) 0%, transparent 60%),
+      linear-gradient(135deg, #fafafa 0%, #f0f4f8 100%);
     color: #1e293b;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
@@ -21,38 +25,40 @@
   #display { height: 100vh; display: flex; flex-direction: column; }
   #display header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 0; margin: 16px 40px 12px; border-radius: 12px;
-    background: linear-gradient(105deg, #081120 0%, #0f2140 40%, #1a3358 70%, #243b5e 100%);
-    box-shadow: 0 12px 40px rgba(8, 17, 32, .35), 0 2px 8px rgba(8, 17, 32, .2);
-    padding: 20px 40px;
+    padding: 0; margin: 20px 44px 14px; border-radius: 20px;
+    background: linear-gradient(120deg, rgba(255,255,255,.85) 0%, rgba(255,255,255,.6) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.9);
+    padding: 22px 42px;
     position: relative; overflow: hidden;
-    border: 1px solid rgba(201,162,39,.2);
-    border-bottom: 3px solid #c9a227;
+    border: 1px solid rgba(255,255,255,.8);
   }
   #display header::before {
-    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-    background: linear-gradient(180deg, #c9a227, #e8c547, #c9a227);
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+    background: linear-gradient(180deg, #a78bfa, #f472b6, #fb923c);
+    border-radius: 20px 0 0 20px;
   }
   #display header::after {
-    content: ""; position: absolute; right: -60px; top: -60px;
-    width: 240px; height: 240px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(201,162,39,.1) 0%, rgba(201,162,39,0) 70%);
+    content: ""; position: absolute; right: -40px; top: -40px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(167,139,250,.08) 0%, rgba(167,139,250,0) 70%);
     pointer-events: none;
   }
-  #board-title { font-size: clamp(28px, 3.2vw, 44px); font-weight: 800; letter-spacing: 4px; text-transform: uppercase; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,.4); }
+  #board-title { font-size: clamp(28px, 3.2vw, 44px); font-weight: 800; letter-spacing: 3px; text-transform: uppercase; background: linear-gradient(120deg, #4c1d95, #7c3aed, #db2777); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   #board-title::after {
-    content: ""; display: block; width: 60px; height: 3px;
-    background: linear-gradient(90deg, #c9a227, transparent);
-    margin-top: 6px; border-radius: 2px;
+    content: ""; display: block; width: 70px; height: 3px;
+    background: linear-gradient(90deg, #a78bfa, #f472b6);
+    margin-top: 8px; border-radius: 3px;
   }
-  #clock-in { color: #ffffff; text-align: right; margin-left: 0; }
-  #clock-in .time, #clock-uae .time { font-size: clamp(20px, 2.2vw, 30px); font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 1px 4px rgba(0,0,0,.3); line-height: 1.25; color: #ffffff; }
-  #clock-in .tz, #clock-uae .tz { font-size: clamp(13px, 1.4vw, 18px); font-weight: 700; opacity: .9; letter-spacing: 2px; margin-right: 8px; color: #c9a227; }
+  #clock-in { color: #4c1d95; text-align: right; margin-left: 0; }
+  #clock-in .time, #clock-uae .time { font-size: clamp(20px, 2.2vw, 30px); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.25; color: #2d3748; }
+  #clock-in .tz, #clock-uae .tz { font-size: clamp(12px, 1.3vw, 16px); font-weight: 700; opacity: .7; letter-spacing: 2px; margin-right: 10px; color: #a78bfa; text-transform: uppercase; }
   #clock-in, #clock-uae { display: block; }
-  #clock-uae { color: #ffffff; text-align: right; flex: none; }
+  #clock-uae { color: #4c1d95; text-align: right; flex: none; }
   @keyframes flagfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
   #clock-uae { flex: 1; text-align: center; color: #fff; }
-  #clock .date, .date { font-size: clamp(14px, 1.4vw, 20px); opacity: .85; margin-top: 4px; color: #c9a227; font-weight: 600; letter-spacing: 1px; }
+  #clock .date, .date { font-size: clamp(14px, 1.4vw, 20px); opacity: .6; margin-top: 6px; color: #718096; font-weight: 500; letter-spacing: 1px; }
 
   #display main {
     flex: 1; display: flex; gap: 26px;
@@ -63,13 +69,12 @@
   .notice-card {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; justify-content: center;
-    background: #ffffff;
-    background-image: linear-gradient(180deg, rgba(201,162,39,.03) 0%, transparent 30%);
-    border: 1px solid #e2e8f0;
-    border-top: 4px solid #c9a227;
-    border-left: 1px solid #c9a22733;
-    box-shadow: 0 20px 60px rgba(10,22,40,.12), 0 2px 8px rgba(10,22,40,.06);
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255,255,255,.75) 0%, rgba(255,255,255,.55) 100%);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255,255,255,.8);
+    box-shadow: 0 8px 32px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.9);
+    border-radius: 24px;
     padding: clamp(32px, 4.5vw, 68px);
     display: flex; flex-direction: column; justify-content: center;
     opacity: 0; transform: rotateY(90deg) translateZ(100px);
@@ -80,16 +85,11 @@
     transform-style: preserve-3d;
     position: absolute;
   }
-  .notice-card::before {
-    content: ""; position: absolute; top: 24px; right: 28px;
-    font-size: 11px; font-weight: 700; letter-spacing: 3px; color: #c9a227;
-    text-transform: uppercase; opacity: .7;
-  }
   .notice-card.show { opacity: 1; transform: rotateY(0deg) translateZ(0); pointer-events: auto; }
   .notice-card.show:hover { transform: rotateY(0deg) translateZ(20px) scale(1.01); }
   .notice-card h2 {
     font-size: clamp(28px, 3.2vw, 52px); font-weight: 800; margin: 0 0 18px;
-    color: #0a1628; letter-spacing: .5px; line-height: 1.2;
+    color: #1e293b; letter-spacing: .5px; line-height: 1.2;
   }
   .notice-card p {
     font-size: clamp(18px, 2vw, 28px); line-height: 1.6; color: #475569;
@@ -132,16 +132,22 @@
 
   #qr-panel {
     width: clamp(320px, 26vw, 400px);
-    background: linear-gradient(160deg, #0f1e3d 0%, #0a1428 100%);
-    color: #fff;
-    padding: 30px 26px; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly;
-    box-shadow: 0 18px 50px rgba(10, 22, 40, .35);
-    flex-shrink: 0; border-radius: 14px;
-    border: 1px solid rgba(201,162,39,.35);
-    border-top: 3px solid #c9a227;
+    background: linear-gradient(165deg, rgba(255,255,255,.9) 0%, rgba(255,255,255,.7) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: #2d3748;
+    padding: 32px 28px; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly;
+    box-shadow: 0 8px 32px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.9);
+    flex-shrink: 0; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.8);
     align-self: stretch;
+    position: relative; overflow: hidden;
   }
-  #qr-label { font-size: clamp(15px, 1.5vw, 20px); font-weight: 700; text-align: center; color: #0a1628; background: linear-gradient(100deg, #d4af37, #c9a227); border-radius: 999px; padding: 10px 26px; margin-bottom: 18px; letter-spacing: 1px; box-shadow: 0 4px 14px rgba(201,162,39,.3); text-transform: uppercase; }
+  #qr-panel::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, #a78bfa, #f472b6, #fb923c);
+  }
+  #qr-label { font-size: clamp(14px, 1.4vw, 18px); font-weight: 700; text-align: center; color: #fff; background: linear-gradient(120deg, #8b5cf6, #d946ef); border-radius: 999px; padding: 10px 28px; margin-bottom: 20px; letter-spacing: 1.5px; box-shadow: 0 4px 16px rgba(139,92,246,.3); text-transform: uppercase; }
   /* Breaktime QR crop: their live page loads in the iframe behind, and this
      window cuts out ONLY the QR code (their QR is a fixed 500x500 image at
      page x=0, y~158 in a 500x875 iframe). JS scales it to fit exactly. */
