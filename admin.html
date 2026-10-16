@@ -287,7 +287,7 @@ function renderNoticeList() {
             else if (im) { deletePhotoPath(n.imgPath); n.img = im; n.imgPath = ""; }
           }
         }
-        saveConfig(CFG); pushLive(); renderNoticeList();
+        saveConfig(CFG); pushLive(); syncToKiosk(); renderNoticeList();
       };
     });
     wrap.appendChild(d);
@@ -368,7 +368,7 @@ function initAdmin() {
     document.getElementById("new-imgurl").value = "";
     document.getElementById("new-imgfile").value = "";
     newImgData = ""; newImgPath = ""; setNewImgPreview("");
-    saveConfig(CFG); pushLive(); renderNoticeList();
+    saveConfig(CFG); pushLive(); syncToKiosk(); renderNoticeList();
   };
 
   function collect() {
