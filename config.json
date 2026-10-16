@@ -13,13 +13,5 @@
   "clock2Label": "UAE",
   "clock2Tz": "Asia/Dubai",
   "rotationSecs": 10,
-  "notices": [
-    {
-      "id": "n1792144594827",
-      "title": "test",
-      "body": "test",
-      "img": "te",
-      "active": true
-    }
-  ]
+  "notices": []
 }
