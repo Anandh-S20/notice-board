@@ -448,7 +448,7 @@ function initDisplay() {
     initConfigPoll();
   });
 }
-/* Smart poll: check the shared config every 2s, re-render notices only
+/* Smart poll: check the shared config every 1s, re-render notices only
    if something changed — no page reload, no QR flicker. */
 function initConfigPoll() {
   setInterval(function () {
@@ -470,7 +470,7 @@ function initConfigPoll() {
       };
       xhr.send();
     } catch (e) {}
-  }, 2000);
+  }, 1000);
 }
 /* Live updates from Firebase (if configured). A #c= kiosk link always wins. */
 function initLiveSync() {
