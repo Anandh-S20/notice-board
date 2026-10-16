@@ -322,7 +322,29 @@ function initAdmin() {
     document.getElementById("admin-panel").style.display = "";
     document.getElementById("set-rot").value = CFG.rotationSecs || 10;
     renderNoticeList();
+    /* Pull latest from server so admin is never stale */
+    refreshFromServer();
   };
+  /* Fetch the server's config and merge — keeps admin in sync */
+  function refreshFromServer() {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", "https://raw.githubusercontent.com/Anandh-S20/notice-board/main/config.json?_=" + Date.now(), true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4 || xhr.status !== 200) return;
+        try {
+          var serverCfg = JSON.parse(xhr.responseText);
+          if (serverCfg && Array.isArray(serverCfg.notices)) {
+            CFG = Object.assign(defaultConfig(), serverCfg);
+            saveConfig(CFG);
+            document.getElementById("set-rot").value = CFG.rotationSecs || 10;
+            renderNoticeList();
+          }
+        } catch (e) {}
+      };
+      xhr.send();
+    } catch (e) {}
+  }
   /* Skip PIN if already unlocked this session */
   try {
     if (sessionStorage.getItem("nb_unlocked") === "1") { unlock(); }
@@ -432,6 +454,15 @@ function initAdmin() {
      onOk fires only after the server confirms the sync. */
   function syncToKiosk(onOk) {
     try {
+      var payload = JSON.stringify(CFG);
+      /* Vercel rejects payloads over ~4.5MB — warn before sending */
+      if (payload.length > 4 * 1024 * 1024) {
+        showToast("Too large to sync (" + Math.round(payload.length / 1024 / 1024 * 10) / 10 + "MB). Use a smaller photo.");
+        var el2 = document.getElementById("live-saved");
+        el2.style.display = ""; el2.textContent = "Sync failed — too large"; el2.style.color = "#d33";
+        setTimeout(function () { el2.style.display = "none"; el2.style.color = ""; }, 4000);
+        return;
+      }
       var xhr = new XMLHttpRequest();
       xhr.open("POST", "/api/sync", true);
       xhr.setRequestHeader("Content-Type", "application/json");
@@ -445,7 +476,7 @@ function initAdmin() {
         else { el.style.display = ""; el.textContent = "Sync failed — display will use last saved"; el.style.color = "#d33"; }
         setTimeout(function () { el.style.display = "none"; el.style.color = ""; }, 4000);
       };
-      xhr.send(JSON.stringify(CFG));
+      xhr.send(payload);
     } catch (e) {}
   }
 }
