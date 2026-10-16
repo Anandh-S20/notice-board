@@ -229,7 +229,8 @@ function loadConfig() {
   return defaultConfig();
 }
 function saveConfig(cfg) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)); } catch (e) {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)); return true; }
+  catch (e) { return false; }
 }
 var CFG = loadConfig();
 function esc(s) {
@@ -349,13 +350,26 @@ function initAdmin() {
       setImgProgress(50, "Compressing…");
       var img = new Image();
       img.onload = function () {
-        var maxW = 900, w = img.width, h = img.height;
+        /* Aggressive compression: keep payload small so saves never fail */
+        var maxW = 800, q = 0.6, w = img.width, h = img.height;
         if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
         var c = document.createElement("canvas"); c.width = w; c.height = h;
         c.getContext("2d").drawImage(img, 0, 0, w, h);
-        newImgData = c.toDataURL("image/jpeg", 0.72);
+        newImgData = c.toDataURL("image/jpeg", q);
+        /* If still too big (>400KB), shrink further */
+        var tries = 0;
+        while (newImgData.length > 400 * 1024 && tries < 3) {
+          tries++;
+          w = Math.round(w * 0.7); h = Math.round(h * 0.7); q = Math.max(0.4, q - 0.1);
+          c.width = w; c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          newImgData = c.toDataURL("image/jpeg", q);
+        }
         setImgProgress(null);
         setNewImgPreview(newImgData);
+        if (newImgData.length > 500 * 1024) {
+          showToast("Photo is very large — it may fail to save. Try a smaller image.");
+        }
       };
       img.src = reader.result;
     };
@@ -373,7 +387,15 @@ function initAdmin() {
     document.getElementById("new-imgurl").value = "";
     document.getElementById("new-imgfile").value = "";
     newImgData = ""; newImgPath = ""; setNewImgPreview("");
-    saveConfig(CFG); pushLive(); syncToKiosk(); renderNoticeList();
+    if (!saveConfig(CFG)) {
+      showToast("Could not save locally (storage full) — try a smaller photo.");
+      CFG.notices.pop();
+      renderNoticeList();
+      return;
+    }
+    pushLive();
+    syncToKiosk(function () { showToast("Notice added: " + t); });
+    renderNoticeList();
   };
 
   function collect() {
