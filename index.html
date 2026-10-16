@@ -98,13 +98,15 @@
   .notice-card .tag {
     align-self: flex-start; font-size: clamp(12px, 1.1vw, 15px); font-weight: 700;
     text-transform: uppercase; letter-spacing: 2px; color: #fff;
-    padding: 8px 20px; border-radius: 4px; margin-bottom: 22px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    padding: 8px 20px; border-radius: 999px; margin-bottom: 22px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
-  .tag.info     { background: linear-gradient(135deg, #1e3a5f, #0f1e3d); }
-  .tag.important{ background: linear-gradient(135deg, #c9a227, #a8861c); }
-  .tag.urgent   { background: linear-gradient(135deg, #b91c1c, #7f1d1d); }
-  .tag.event    { background: linear-gradient(135deg, #0d5c63, #083f45); }
+  .tag.info     { background: linear-gradient(135deg, rgba(59,130,246,.85), rgba(147,197,253,.85)); }
+  .tag.important{ background: linear-gradient(135deg, rgba(245,158,11,.85), rgba(251,191,36,.85)); }
+  .tag.urgent   { background: linear-gradient(135deg, rgba(239,68,68,.85), rgba(248,113,113,.85)); }
+  .tag.event    { background: linear-gradient(135deg, rgba(139,92,246,.85), rgba(196,181,253,.85)); }
   /* photo notice: image fills the entire event box.
      Text sits at the top, below the banner. */
   .notice-card.has-img {
