@@ -22,7 +22,17 @@
     display: flex; justify-content: space-between; align-items: center;
     padding: 0; margin: 18px 42px 10px; border-radius: 18px;
     background: linear-gradient(100deg, #1e3a5f 0%, #2563eb 55%, #1e40af 100%);
-    box-shadow: 0 10px 34px rgba(37, 99, 235, .35);  #board-title { font-size: clamp(30px, 3.6vw, 48px); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+    box-shadow: 0 10px 34px rgba(37, 99, 235, .35);
+    padding: 18px 38px;
+    position: relative; overflow: hidden;
+  }
+  #display header::after {
+    content: ""; position: absolute; right: -70px; top: -70px;
+    width: 260px; height: 260px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 70%);
+    pointer-events: none;
+  }
+  #board-title { font-size: clamp(30px, 3.6vw, 48px); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
   #clock-in { margin-left: 48px; color: #fff; text-align: left; }
   #clock-in .time, #clock-uae .time { font-size: clamp(22px, 2.6vw, 34px); font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 2px 10px rgba(0,0,0,.3); line-height: 1.25; }
   #clock-in .tz, #clock-uae .tz { font-size: clamp(14px, 1.6vw, 21px); font-weight: 600; opacity: .85; letter-spacing: 1px; margin-right: 8px; }
@@ -34,9 +44,9 @@
 
   #display main {
     flex: 1; display: flex; gap: 26px;
-    padding: 14px 42px 34px; min-height: 0;
+    padding: 14px 42px 34px; min-height: 0; align-items: stretch;
   }
-  #qr-panel { width: 380px; flex-shrink: 0; }
+  #qr-panel { width: 380px; flex-shrink: 0; align-self: stretch; height: auto; min-height: 100%; }
   #notice-area { flex: 1; display: flex; min-width: 0; min-height: 0; position: relative; }
   .notice-card {
     position: absolute; inset: 0;
@@ -44,7 +54,14 @@
     background: linear-gradient(135deg, rgba(30,41,59,.72) 0%, rgba(15,23,42,.78) 100%);
     border: 1px solid rgba(148,163,184,.22);
     box-shadow: 0 18px 50px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08);
-    border-radius: 22px;  .notice-card.show { opacity: 1; transform: none; pointer-events: auto; }
+    border-radius: 22px;
+    padding: clamp(28px, 4vw, 60px);
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; transform: translateY(14px);
+    transition: opacity .6s ease, transform .6s ease;
+    pointer-events: none;
+  }
+  .notice-card.show { opacity: 1; transform: none; pointer-events: auto; }
   .notice-card .tag {
     align-self: flex-start; font-size: clamp(13px, 1.2vw, 17px); font-weight: 700;
     text-transform: uppercase; letter-spacing: 2px; color: #fff;
@@ -73,15 +90,22 @@
   .photo-overlay {
     position: relative; z-index: 1;
     background: linear-gradient(to bottom, rgba(5,8,20,.92) 0%, rgba(5,8,20,.55) 55%, transparent 100%);
-    padding: 36px clamp(28px, 4vw, 60px) 70px
-; border-radius: 0;
+    padding: 36px clamp(28px, 4vw, 60px) 70px; border-radius: 0;
   }
+  .photo-overlay {
+    position: relative; z-index: 1;
+    background: linear-gradient(to bottom, rgba(5,8,20,.92) 0%, rgba(5,8,20,.55) 55%, transparent 100%);
+    padding: 36px clamp(28px, 4vw, 60px) 70px; border-radius: 0;
+  }
+  .notice-text { min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+
   #qr-panel {
     align-self: stretch;
     width: clamp(300px, 24vw, 360px);
     background: #fff; color: #141414; border-radius: 22px;
     padding: 30px 26px; display: flex; flex-direction: column; align-items: center; justify-content: center;
     box-shadow: 0 18px 50px rgba(0,0,0,.45);
+    min-height: 100%;
   }
   #qr-label { font-size: clamp(15px, 1.5vw, 20px); font-weight: 700; text-align: center; color: #fff; background: linear-gradient(100deg, #1e3a5f, #2563eb); border-radius: 999px; padding: 10px 26px; margin-bottom: 18px; letter-spacing: .5px; box-shadow: 0 4px 14px rgba(37,99,235,.3); }
   /* Breaktime QR crop: their live page loads in the iframe behind, and this
@@ -128,6 +152,13 @@
     </div>
     <div id="qr-panel">
       <div id="qr-label">Breaktime QR Code</div>
+      <div id="qr-crop">
+        <iframe id="qr-frame" title="Breaktime QR" scrolling="no" sandbox="allow-scripts allow-same-origin"></iframe>
+      </div>
+    </div>
+  </main>
+</div>
+
 <script>
 "use strict";
 /* ============ storage & config ============ */
@@ -182,7 +213,14 @@ function loadConfig() {
   return defaultConfig();
 }
 function saveConfig(cfg) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)
+  try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)); } catch (e) {}
+}
+var CFG = loadConfig();
+function esc(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 /* ============ display view ============ */
 var curIdx = 0, rotTimer = null;
 
@@ -233,6 +271,13 @@ function renderNotices() {
         '<div class="photo-overlay"><span class="tag ' + esc(n.tag || "info") + '">' + esc(n.tag || "info") + "</span>" +
         "<h2>" + esc(n.title) + "</h2><p>" + esc(n.body) + "</p></div>";
     } else {
+      d.innerHTML = '<div class="notice-text"><span class="tag ' + esc(n.tag || "info") + '">' + esc(n.tag || "info") + "</span>" +
+        "<h2>" + esc(n.title) + "</h2><p>" + esc(n.body) + "</p></div>";
+    }
+    wrap.appendChild(d);
+  });
+}
+
 function showNotice(i) {
   var list = activeNotices();
   if (!list.length) return;
@@ -289,47 +334,3 @@ initDisplay();
 </script>
 </body>
 </html>
-      d.innerHTML = '<div class="notice-text"><span class="tag ' + esc(n.tag || "info") + '">' + esc(n.tag || "info") + "</span>" +
-        "<h2>" + esc(n.title) + "</h2><p>" + esc(n.body) + "</p></div>";
-    }
-    wrap.appendChild(d);
-  });
-}
-); } catch (e) {}
-}
-var CFG = loadConfig();
-function esc(s) {
-  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-      <div id="qr-crop">
-        <iframe id="qr-frame" title="Breaktime QR" scrolling="no" sandbox="allow-scripts allow-same-origin"></iframe>
-      </div>
-    </div>
-  </main>
-</div>
-
-  .photo-overlay {
-    position: relative; z-index: 1;
-    background: linear-gradient(to bottom, rgba(5,8,20,.92) 0%, rgba(5,8,20,.55) 55%, transparent 100%);
-    padding: 36px clamp(28px, 4vw, 60px) 70px; border-radius: 0;
-  }
-  .notice-text { min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
-
-    padding: clamp(28px, 4vw, 60px);
-    display: flex; flex-direction: column; justify-content: center;
-    opacity: 0; transform: translateY(14px);
-    transition: opacity .6s ease, transform .6s ease;
-    pointer-events: none;
-  }
-
-    padding: 18px 38px;
-    position: relative; overflow: hidden;
-  }
-  #display header::after {
-    content: ""; position: absolute; right: -70px; top: -70px;
-    width: 260px; height: 260px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 70%);
-    pointer-events: none;
-  }
