@@ -322,32 +322,8 @@ function initDisplay() {
   setInterval(tickClock, 1000);
   window.addEventListener("resize", fitQrCrop);
   initLiveSync();
-  initSpotRefresh();
-  /* Fallback auto-refresh every 5 minutes */
+  /* Auto-refresh every 5 minutes to pick up updates */
   setInterval(function () { location.reload(); }, 5 * 60 * 1000);
-}
-/* Spot refresh: watch GitHub for config changes, reload within ~20 seconds.
-   No auth needed — the repo is public. */
-var lastSeenSha = null;
-function initSpotRefresh() {
-  function check() {
-    try {
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", "https://api.github.com/repos/Anandh-S20/notice-board/commits?path=config.json&per_page=1", true);
-      xhr.setRequestHeader("Accept", "application/vnd.github.v3+json");
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState !== 4 || xhr.status !== 200) return;
-        try {
-          var sha = JSON.parse(xhr.responseText)[0].sha;
-          if (lastSeenSha === null) { lastSeenSha = sha; return; }
-          if (sha !== lastSeenSha) { location.reload(); }
-        } catch (e) {}
-      };
-      xhr.send();
-    } catch (e) {}
-  }
-  check();
-  setInterval(check, 20000);
 }
 /* Live updates from Firebase (if configured). A #c= kiosk link always wins. */
 function initLiveSync() {
