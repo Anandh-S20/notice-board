@@ -301,7 +301,7 @@ function loadConfig() {
 function fetchKioskConfig(cb) {
   try {
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "https://cdn.jsdelivr.net/gh/Anandh-S20/notice-board@main/config.json?_=" + Date.now(), true);
+    xhr.open("GET", "https://raw.githubusercontent.com/Anandh-S20/notice-board/main/config.json?_=" + Date.now(), true);
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== 4) return;
       if (xhr.status === 200) {
@@ -454,7 +454,7 @@ function initConfigPoll() {
   setInterval(function () {
     try {
       var xhr = new XMLHttpRequest();
-      xhr.open("GET", "https://cdn.jsdelivr.net/gh/Anandh-S20/notice-board@main/config.json?_=" + Date.now(), true);
+      xhr.open("GET", "https://raw.githubusercontent.com/Anandh-S20/notice-board/main/config.json?_=" + Date.now(), true);
       xhr.onreadystatechange = function () {
         if (xhr.readyState !== 4 || xhr.status !== 200) return;
         try {
