@@ -107,6 +107,35 @@
     <p class="hint" id="save-ok" style="color:#3fae6a; display:none;">Saved.</p>
 
     <div class="card" style="margin-top:24px;">
+      <h3>Display</h3>
+      <label>Banner title</label><input type="text" id="set-bannertitle" placeholder="Notice Board">
+      <label>Logo image URL <span class="hint">(leave blank for default logo, type "none" to hide)</span></label><input type="text" id="set-logourl" placeholder="logo.png">
+      <div class="row">
+        <div><label>Theme</label>
+          <select id="set-theme">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div><label>&nbsp;</label><label style="display:flex; align-items:center; gap:8px; font-weight:normal;"><input type="checkbox" id="set-showqr" style="width:auto;"> Show QR panel</label></div>
+      </div>
+      <label>QR label</label><input type="text" id="set-qrlabel" placeholder="Breaktime QR Code">
+      <label>QR page URL</label><input type="text" id="set-qrurl" placeholder="https://...">
+      <div class="row" style="margin-top:12px;">
+        <div><label>&nbsp;</label><label style="display:flex; align-items:center; gap:8px; font-weight:normal;"><input type="checkbox" id="set-showclocks" style="width:auto;"> Show clocks</label></div>
+        <div><label>&nbsp;</label><label style="display:flex; align-items:center; gap:8px; font-weight:normal;"><input type="checkbox" id="set-showdate" style="width:auto;"> Show date</label></div>
+      </div>
+      <div class="row">
+        <div><label>Clock 1 label</label><input type="text" id="set-clock1label" placeholder="INDIA"></div>
+        <div><label>Clock 1 timezone</label><input type="text" id="set-clock1tz" placeholder="Asia/Kolkata"></div>
+      </div>
+      <div class="row">
+        <div><label>Clock 2 label</label><input type="text" id="set-clock2label" placeholder="UAE"></div>
+        <div><label>Clock 2 timezone</label><input type="text" id="set-clock2tz" placeholder="Asia/Dubai"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
       <h3>Settings</h3>
       <div class="row">
         <div><label>Rotate every (seconds)</label><input type="number" id="set-rot" min="4" max="120"></div>
@@ -171,6 +200,18 @@ function defaultConfig() {
   return {
     pin: "1234",
     title: "Notice Board",
+    bannerTitle: "Notice Board",
+    logoUrl: "logo.png",
+    showClocks: true,
+    clock1Label: "INDIA",
+    clock1Tz: "Asia/Kolkata",
+    clock2Label: "UAE",
+    clock2Tz: "Asia/Dubai",
+    showDate: true,
+    showQr: true,
+    qrLabel: "Breaktime QR Code",
+    qrUrl: "https://efftime.com/break_log/gate.php",
+    theme: "light",
     rotationSecs: 10,
     notices: [
       { id: "n1", title: "Welcome to the Notice Board", body: "This is a sample notice.\nReplace it on the admin page (PIN 1234).", tag: "info", active: true },
@@ -262,6 +303,18 @@ function initAdmin() {
       document.getElementById("admin-panel").style.display = "";
       document.getElementById("set-rot").value = CFG.rotationSecs || 10;
       document.getElementById("set-pin").value = CFG.pin || "";
+      document.getElementById("set-bannertitle").value = CFG.bannerTitle || "";
+      document.getElementById("set-logourl").value = CFG.logoUrl || "";
+      document.getElementById("set-theme").value = CFG.theme || "light";
+      document.getElementById("set-showqr").checked = CFG.showQr !== false;
+      document.getElementById("set-qrlabel").value = CFG.qrLabel || "";
+      document.getElementById("set-qrurl").value = CFG.qrUrl || "";
+      document.getElementById("set-showclocks").checked = CFG.showClocks !== false;
+      document.getElementById("set-showdate").checked = CFG.showDate !== false;
+      document.getElementById("set-clock1label").value = CFG.clock1Label || "";
+      document.getElementById("set-clock1tz").value = CFG.clock1Tz || "";
+      document.getElementById("set-clock2label").value = CFG.clock2Label || "";
+      document.getElementById("set-clock2tz").value = CFG.clock2Tz || "";
       var ls = document.getElementById("live-status");
       if (firebaseReady()) { ls.textContent = "Live sync: ON — the display updates automatically when you save."; ls.style.color = "#3fae6a"; }
       else { ls.textContent = "Live sync: not configured — the display uses the kiosk link."; ls.style.color = ""; }
@@ -324,6 +377,19 @@ function initAdmin() {
 
   function collect() {
     CFG.title = "Notice Board";
+    CFG.bannerTitle = document.getElementById("set-bannertitle").value.trim() || "Notice Board";
+    var lu = document.getElementById("set-logourl").value.trim();
+    CFG.logoUrl = lu === "none" ? "__none__" : (lu || "logo.png");
+    CFG.theme = document.getElementById("set-theme").value || "light";
+    CFG.showQr = document.getElementById("set-showqr").checked;
+    CFG.qrLabel = document.getElementById("set-qrlabel").value.trim() || "Breaktime QR Code";
+    CFG.qrUrl = document.getElementById("set-qrurl").value.trim() || "https://efftime.com/break_log/gate.php";
+    CFG.showClocks = document.getElementById("set-showclocks").checked;
+    CFG.showDate = document.getElementById("set-showdate").checked;
+    CFG.clock1Label = document.getElementById("set-clock1label").value.trim() || "INDIA";
+    CFG.clock1Tz = document.getElementById("set-clock1tz").value.trim() || "Asia/Kolkata";
+    CFG.clock2Label = document.getElementById("set-clock2label").value.trim() || "UAE";
+    CFG.clock2Tz = document.getElementById("set-clock2tz").value.trim() || "Asia/Dubai";
     var r = parseInt(document.getElementById("set-rot").value, 10);
     CFG.rotationSecs = isNaN(r) ? 10 : Math.max(4, Math.min(120, r));
     var p = document.getElementById("set-pin").value.trim();
