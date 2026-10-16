@@ -78,11 +78,9 @@
     <p class="hint" id="live-status" style="margin-bottom:16px;">Live sync: not configured.</p>
 
     <div class="card">
-      <h3>Board settings</h3>
-      <label>Board title</label>
-      <input type="text" id="set-title">
+      <h3>Settings</h3>
       <div class="row">
-        <div><label>Rotate notices every (seconds)</label><input type="number" id="set-rot" min="4" max="120"></div>
+        <div><label>Rotate every (seconds)</label><input type="number" id="set-rot" min="4" max="120"></div>
         <div><label>Admin PIN</label><input type="text" id="set-pin" maxlength="12"></div>
       </div>
     </div>
@@ -97,7 +95,6 @@
       <input type="text" id="new-imgurl" placeholder="Paste an image link...">
       <input type="file" id="new-imgfile" accept="image/*" style="margin-top:8px;">
       <img id="new-imgprev" alt="" style="display:none; max-width:180px; margin-top:10px; border-radius:8px;">
-      <p class="hint">Uploaded photos are compressed automatically. For very large photos prefer an image link — huge uploads can make the kiosk link too long.</p>
       <div class="row">
         <div><label>Tag</label>
           <select id="new-tag">
@@ -107,22 +104,14 @@
             <option value="event">Event</option>
           </select>
         </div>
-        <div><label>&nbsp;</label><button class="btn primary" id="add-notice">Add notice</button></div>
+        <div><label>&nbsp;</label><button class="btn primary" id="add-notice">Add</button></div>
       </div>
     </div>
 
-    <div class="card">
-      <h3>Kiosk link</h3>
-      <p class="hint">This link carries ALL settings inside it — use it as the start page for the Single-App Kiosk browser. No login or network storage needed on the kiosk PC.</p>
-      <button class="btn primary" id="copy-kiosk">Copy kiosk link</button>
-      <span id="copy-ok" style="color:#3fae6a; display:none; margin-left:10px;">Copied!</span>
-      <div id="kiosk-link-out"></div>
-    </div>
-
-    <button class="btn primary" id="save-all">Save all changes</button>
-    <span id="live-saved" style="color:#3fae6a; display:none; margin-left:10px;">Synced to display ✓</span>
-    <button class="btn ghost" id="preview-display">Preview display</button>
-    <button class="btn danger" id="reset-all">Reset to defaults</button>
+    <button class="btn primary" id="save-all">Save</button>
+    <span id="live-saved" style="color:#3fae6a; display:none; margin-left:10px;">Synced ✓</span>
+    <button class="btn ghost" id="copy-kiosk">Copy kiosk link</button>
+    <span id="copy-ok" style="color:#3fae6a; display:none; margin-left:10px;">Copied!</span>
     <p class="hint" id="save-ok" style="color:#3fae6a; display:none;">Saved.</p>
   </div>
 </div>
@@ -271,7 +260,6 @@ function initAdmin() {
     if (v === CFG.pin) {
       document.getElementById("pin-gate").style.display = "none";
       document.getElementById("admin-panel").style.display = "";
-      document.getElementById("set-title").value = CFG.title || "";
       document.getElementById("set-rot").value = CFG.rotationSecs || 10;
       document.getElementById("set-pin").value = CFG.pin || "";
       var ls = document.getElementById("live-status");
@@ -335,7 +323,7 @@ function initAdmin() {
   };
 
   function collect() {
-    CFG.title = document.getElementById("set-title").value.trim() || "Notice Board";
+    CFG.title = "Notice Board";
     var r = parseInt(document.getElementById("set-rot").value, 10);
     CFG.rotationSecs = isNaN(r) ? 10 : Math.max(4, Math.min(120, r));
     var p = document.getElementById("set-pin").value.trim();
@@ -346,17 +334,9 @@ function initAdmin() {
     var ok = document.getElementById("save-ok");
     ok.style.display = ""; setTimeout(function () { ok.style.display = "none"; }, 2000);
   };
-  document.getElementById("preview-display").onclick = function () { collect(); saveConfig(CFG); pushLive(); window.open(displayURL(), "_blank"); };
-  document.getElementById("reset-all").onclick = function () {
-    if (confirm("Reset everything to defaults? This erases all notices.")) {
-      (CFG.notices || []).forEach(function (n) { deletePhotoPath(n.imgPath); });
-      CFG = defaultConfig(); saveConfig(CFG); pushLive(); location.reload();
-    }
-  };
   document.getElementById("copy-kiosk").onclick = function () {
     collect(); saveConfig(CFG);
     var url = displayURL();
-    document.getElementById("kiosk-link-out").textContent = url;
     var done = function () {
       var ok = document.getElementById("copy-ok");
       ok.style.display = ""; setTimeout(function () { ok.style.display = "none"; }, 2000);
