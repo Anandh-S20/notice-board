@@ -75,7 +75,6 @@
 
   <div id="admin-panel" style="display:none;">
     <h2 style="margin-bottom:6px;">Admin Panel</h2>
-    <p class="hint" id="live-status" style="margin-bottom:16px;">Live sync: not configured.</p>
 
     <div class="card">
       <h3>Notices</h3>
@@ -315,9 +314,6 @@ function initAdmin() {
       document.getElementById("set-clock1tz").value = CFG.clock1Tz || "";
       document.getElementById("set-clock2label").value = CFG.clock2Label || "";
       document.getElementById("set-clock2tz").value = CFG.clock2Tz || "";
-      var ls = document.getElementById("live-status");
-      if (firebaseReady()) { ls.textContent = "Live sync: ON — the display updates automatically when you save."; ls.style.color = "#3fae6a"; }
-      else { ls.textContent = "Live sync: not configured — the display uses the kiosk link."; ls.style.color = ""; }
       renderNoticeList();
     } else {
       document.getElementById("pin-err").style.display = "";
