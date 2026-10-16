@@ -11,7 +11,8 @@
   html, body { height: 100%; }
   body {
     font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-    background: radial-gradient(1200px 800px at 70% 20%, #2a1f3d 0%, #16121f 55%, #0d0a14 100%);
+    background: radial-gradient(1200px 800px at 70% 20%, #f3e8ff 0%, #e9e4f5 55%, #ddd6f3 100%);
+    color: #1e1b2e;
     color: #fff;
     overflow: hidden;
   }
@@ -21,8 +22,8 @@
   #display header {
     display: flex; justify-content: space-between; align-items: center;
     padding: 0; margin: 18px 42px 10px; border-radius: 18px;
-    background: linear-gradient(100deg, #b91c1c 0%, #7c3aed 50%, #2563eb 100%);
-    box-shadow: 0 10px 34px rgba(124, 58, 237, .35);
+    background: linear-gradient(100deg, #fca5a5 0%, #c4b5fd 50%, #93c5fd 100%);
+    box-shadow: 0 10px 34px rgba(167, 139, 250, .25);
     padding: 18px 38px;
     position: relative; overflow: hidden;
   }
@@ -32,15 +33,15 @@
     background: radial-gradient(circle, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 70%);
     pointer-events: none;
   }
-  #board-title { font-size: clamp(30px, 3.6vw, 48px); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
-  #clock-in { color: #fff; text-align: right; margin-left: 0; }
-  #clock-in .time, #clock-uae .time { font-size: clamp(20px, 2.2vw, 30px); font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 2px 10px rgba(0,0,0,.3); line-height: 1.25; }
-  #clock-in .tz, #clock-uae .tz { font-size: clamp(13px, 1.4vw, 18px); font-weight: 600; opacity: .85; letter-spacing: 1px; margin-right: 8px; }
+  #board-title { font-size: clamp(30px, 3.6vw, 48px); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #1e1b2e; text-shadow: 0 1px 6px rgba(255,255,255,.4); }
+  #clock-in { color: #1e1b2e; text-align: right; margin-left: 0; }
+  #clock-in .time, #clock-uae .time { font-size: clamp(20px, 2.2vw, 30px); font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 1px 6px rgba(255,255,255,.4); line-height: 1.25; }
+  #clock-in .tz, #clock-uae .tz { font-size: clamp(13px, 1.4vw, 18px); font-weight: 700; opacity: .75; letter-spacing: 1px; margin-right: 8px; color: #4c1d95; }
   #clock-in, #clock-uae { display: block; }
-  #clock-uae { color: #fff; text-align: right; flex: none; }
+  #clock-uae { color: #1e1b2e; text-align: right; flex: none; }
   @keyframes flagfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
   #clock-uae { flex: 1; text-align: center; color: #fff; }
-  #clock .date { font-size: clamp(14px, 1.4vw, 20px); opacity: .85; margin-top: 4px; color: #fff; }
+  #clock .date, .date { font-size: clamp(14px, 1.4vw, 20px); opacity: .85; margin-top: 4px; color: #1e1b2e; font-weight: 600; }
 
   #display main {
     flex: 1; display: flex; gap: 26px;
@@ -51,15 +52,16 @@
   .notice-card {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; justify-content: center;
-    background: linear-gradient(135deg, rgba(76,29,149,.85) 0%, rgba(30,27,75,.9) 50%, rgba(15,23,42,.92) 100%);
-    border: 1px solid rgba(167,139,250,.35);
-    box-shadow: 0 18px 50px rgba(0,0,0,.4), 0 0 40px rgba(124,58,237,.15), inset 0 1px 0 rgba(255,255,255,.12);
+    background: linear-gradient(135deg, #ffffff 0%, #f5f0ff 50%, #fef2f2 100%);
+    border: 1px solid rgba(167,139,250,.3);
+    box-shadow: 0 18px 50px rgba(0,0,0,.08), 0 0 40px rgba(167,139,250,.12), inset 0 1px 0 rgba(255,255,255,.8);
     border-radius: 22px;
     padding: clamp(28px, 4vw, 60px);
     display: flex; flex-direction: column; justify-content: center;
     opacity: 0; transform: translateY(14px);
     transition: opacity .6s ease, transform .6s ease;
     pointer-events: none;
+    color: #1e1b2e;
   }
   .notice-card.show { opacity: 1; transform: none; pointer-events: auto; }
   .notice-card .tag {
@@ -72,8 +74,8 @@
   .tag.important{ background: linear-gradient(135deg, #f59e0b, #ef4444); }
   .tag.urgent   { background: linear-gradient(135deg, #dc2626, #991b1b); box-shadow: 0 0 20px rgba(220,38,38,.5); }
   .tag.event    { background: linear-gradient(135deg, #7c3aed, #ec4899); }
-  .notice-card h2 { font-size: clamp(30px, 4.2vw, 64px); margin-bottom: 18px; line-height: 1.15; background: linear-gradient(90deg, #fff 30%, #c4b5fd 70%, #fca5a5); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-  .notice-card p  { font-size: clamp(18px, 2.2vw, 32px); line-height: 1.55; opacity: .92; white-space: pre-line; }
+  .notice-card h2 { font-size: clamp(30px, 4.2vw, 64px); margin-bottom: 18px; line-height: 1.15; background: linear-gradient(90deg, #7c3aed 10%, #db2777 50%, #dc2626 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .notice-card p  { font-size: clamp(18px, 2.2vw, 32px); line-height: 1.55; opacity: .85; white-space: pre-line; color: #3b3554; }
   /* photo notice: image fills the entire event box.
      Text sits at the top, below the banner. */
   .notice-card.has-img {
