@@ -376,10 +376,10 @@ function renderNotices() {
     d.className = "notice-card" + (i === curIdx ? " show" : "") + (n.img ? " has-img" : "");
     if (n.img) {
       d.innerHTML = '<img class="photo-fill" src=' + JSON.stringify(n.img) + ' alt="">' +
-        '<div class="photo-overlay"><span class="tag ' + esc(n.tag || "info") + '">' + esc(n.tag || "info") + "</span>" +
+        '<div class="photo-overlay">' +
         "<h2>" + esc(n.title) + "</h2><p>" + esc(n.body) + "</p></div>";
     } else {
-      d.innerHTML = '<div class="notice-text"><span class="tag ' + esc(n.tag || "info") + '">' + esc(n.tag || "info") + "</span>" +
+      d.innerHTML = '<div class="notice-text">' +
         "<h2>" + esc(n.title) + "</h2><p>" + esc(n.body) + "</p></div>";
     }
     wrap.appendChild(d);
