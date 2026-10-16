@@ -109,6 +109,12 @@
     </div>
 
     <span id="live-saved" style="color:#3fae6a; display:none; margin-left:10px;">Synced ✓</span>
+    <div id="sync-progress" style="display:none; margin-top:8px;">
+      <div style="height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+        <div id="sync-progress-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#22c55e,#4ade80); border-radius:4px; transition:width .2s;"></div>
+      </div>
+      <div id="sync-progress-text" style="font-size:12px; color:#64748b; margin-top:4px;">Syncing… 0%</div>
+    </div>
     <div id="toast" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1e293b; color:#fff; padding:12px 24px; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.25); z-index:9999; font-size:14px;"></div>
     <p class="hint">Changes save automatically.</p>
 
@@ -184,6 +190,15 @@ function uploadPhotoFile(file, cb) {
           .catch(function () { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); });
       });
   } catch (e) { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); }
+}
+function setSyncProgress(pct, text) {
+  var wrap = document.getElementById("sync-progress");
+  var bar = document.getElementById("sync-progress-bar");
+  var txt = document.getElementById("sync-progress-text");
+  if (pct == null) { wrap.style.display = "none"; return; }
+  wrap.style.display = "";
+  bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
+  txt.textContent = text || ("Syncing… " + Math.round(pct) + "%");
 }
 function showTick(fieldId) {
   var t = document.getElementById("tick-" + fieldId);
@@ -466,14 +481,26 @@ function initAdmin() {
       var xhr = new XMLHttpRequest();
       xhr.open("POST", "/api/sync", true);
       xhr.setRequestHeader("Content-Type", "application/json");
+      setSyncProgress(5, "Syncing…");
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) {
+          var pct = (e.loaded / e.total) * 90;
+          setSyncProgress(pct, "Uploading… " + Math.round(pct) + "%");
+        }
+      };
       xhr.onreadystatechange = function () {
         if (xhr.readyState !== 4) return;
         var el = document.getElementById("live-saved");
         if (xhr.status === 200) {
+          setSyncProgress(100, "Done ✓");
+          setTimeout(function () { setSyncProgress(null); }, 1500);
           el.style.display = ""; el.textContent = "Synced to display ✓";
           if (onOk) onOk();
         }
-        else { el.style.display = ""; el.textContent = "Sync failed — display will use last saved"; el.style.color = "#d33"; }
+        else {
+          setSyncProgress(null);
+          el.style.display = ""; el.textContent = "Sync failed — display will use last saved"; el.style.color = "#d33";
+        }
         setTimeout(function () { el.style.display = "none"; el.style.color = ""; }, 4000);
       };
       xhr.send(payload);
