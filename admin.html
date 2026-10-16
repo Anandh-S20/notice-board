@@ -305,7 +305,12 @@ function renderNoticeList() {
             deletePhotoPath(CFG.notices[i].imgPath);
             CFG.notices.splice(i, 1);
             saveConfig(CFG); pushLive();
-            syncToKiosk(function () { showToast("Notice deleted: " + delTitle); });
+            /* Re-render immediately so the notice disappears right away */
+            renderNoticeList();
+            showToast("Notice deleted: " + delTitle);
+            /* Sync in background — toast already shown */
+            syncToKiosk();
+            return;
           }
         }
         else if (a === "toggle") { n.active = !n.active; }
