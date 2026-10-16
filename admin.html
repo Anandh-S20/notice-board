@@ -263,14 +263,22 @@ function renderNoticeList() {
   if (!CFG.notices.length) wrap.innerHTML = '<p class="hint">No notices yet — add one below.</p>';
 }
 function initAdmin() {
+  var unlock = function () {
+    document.getElementById("pin-gate").style.display = "none";
+    document.getElementById("admin-panel").style.display = "";
+    document.getElementById("set-rot").value = CFG.rotationSecs || 10;
+    document.getElementById("set-pin").value = CFG.pin || "";
+    renderNoticeList();
+  };
+  /* Skip PIN if already unlocked this session */
+  try {
+    if (sessionStorage.getItem("nb_unlocked") === "1") { unlock(); }
+  } catch (e) {}
   var go = function () {
     var v = document.getElementById("pin-input").value;
     if (v === CFG.pin) {
-      document.getElementById("pin-gate").style.display = "none";
-      document.getElementById("admin-panel").style.display = "";
-      document.getElementById("set-rot").value = CFG.rotationSecs || 10;
-      document.getElementById("set-pin").value = CFG.pin || "";
-      renderNoticeList();
+      try { sessionStorage.setItem("nb_unlocked", "1"); } catch (e) {}
+      unlock();
     } else {
       document.getElementById("pin-err").style.display = "";
     }
