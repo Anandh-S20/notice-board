@@ -219,6 +219,18 @@ function defaultConfig() {
   return {
     pin: "1234",
     title: "Notice Board",
+    bannerTitle: "Notice Board",
+    logoUrl: "logo.png",
+    showClocks: true,
+    clock1Label: "INDIA",
+    clock1Tz: "Asia/Kolkata",
+    clock2Label: "UAE",
+    clock2Tz: "Asia/Dubai",
+    showDate: true,
+    showQr: true,
+    qrLabel: "Breaktime QR Code",
+    qrUrl: "https://efftime.com/break_log/gate.php",
+    theme: "light",
     rotationSecs: 10,
     notices: [
       { id: "n1", title: "Welcome to the Notice Board", body: "This is a sample notice.\nReplace it on the admin page (PIN 1234).", tag: "info", active: true },
@@ -244,6 +256,30 @@ function loadConfig() {
     if (raw) return Object.assign(defaultConfig(), JSON.parse(raw));
   } catch (e) {}
   return defaultConfig();
+}
+/* Fetch the shared kiosk config from the repo (no auth needed, public).
+   This makes the plain link work as a kiosk — no long hash required. */
+function fetchKioskConfig(cb) {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "https://raw.githubusercontent.com/Anandh-S20/notice-board/main/config.json?_=" + Date.now(), true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status === 200) {
+        try {
+          var remote = JSON.parse(xhr.responseText);
+          /* Only use remote if it has actual notices (not the empty default) */
+          if (remote && remote.notices && remote.notices.length) {
+            CFG = Object.assign(defaultConfig(), remote);
+            try { localStorage.setItem(LS_KEY, JSON.stringify(CFG)); } catch (e) {}
+          }
+        } catch (e) {}
+      }
+      cb();
+    };
+    xhr.onerror = function () { cb(); };
+    xhr.send();
+  } catch (e) { cb(); }
 }
 function saveConfig(cfg) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)); } catch (e) {}
@@ -363,13 +399,14 @@ function applyConfigToDisplay() {
   renderQR(); curIdx = 0; renderNotices(); restartRotation();
 }
 function initDisplay() {
-  applyConfigToDisplay();
-  tickClock();
-  setInterval(tickClock, 1000);
-  window.addEventListener("resize", fitQrCrop);
-  initLiveSync();
-  /* Auto-refresh every 30 seconds to pick up updates */
-  setInterval(function () { location.reload(); }, 30 * 1000);
+  /* Try the shared kiosk config first, then render */
+  fetchKioskConfig(function () {
+    applyConfigToDisplay();
+    tickClock();
+    setInterval(tickClock, 1000);
+    window.addEventListener("resize", fitQrCrop);
+    initLiveSync();
+  });
 }
 /* Live updates from Firebase (if configured). A #c= kiosk link always wins. */
 function initLiveSync() {
