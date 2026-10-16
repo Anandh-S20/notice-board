@@ -99,11 +99,8 @@
       </div>
     </div>
 
-    <button class="btn primary" id="save-all">Save</button>
     <span id="live-saved" style="color:#3fae6a; display:none; margin-left:10px;">Synced ✓</span>
-    <button class="btn ghost" id="copy-kiosk">Copy kiosk link</button>
-    <span id="copy-ok" style="color:#3fae6a; display:none; margin-left:10px;">Copied!</span>
-    <p class="hint" id="save-ok" style="color:#3fae6a; display:none;">Saved.</p>
+    <p class="hint">Changes save automatically.</p>
 
     <div class="card" style="margin-top:24px;">
       <h3>Display</h3>
@@ -391,11 +388,14 @@ function initAdmin() {
     var p = document.getElementById("set-pin").value.trim();
     if (p) CFG.pin = p;
   }
-  document.getElementById("save-all").onclick = function () {
-    collect(); saveConfig(CFG); pushLive(); syncToKiosk();
-    var ok = document.getElementById("save-ok");
-    ok.style.display = ""; setTimeout(function () { ok.style.display = "none"; }, 2000);
-  };
+  /* Auto-sync on any setting change — no Save button needed */
+  function autoSync() { collect(); saveConfig(CFG); pushLive(); syncToKiosk(); }
+  ["set-bannertitle","set-logourl","set-theme","set-showqr","set-qrlabel","set-qrurl",
+   "set-showclocks","set-showdate","set-clock1label","set-clock1tz","set-clock2label","set-clock2tz",
+   "set-rot","set-pin"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener("change", autoSync);
+  });
   /* Push config to the shared kiosk via the sync API (no token in the page) */
   function syncToKiosk() {
     try {
@@ -412,17 +412,6 @@ function initAdmin() {
       xhr.send(JSON.stringify(CFG));
     } catch (e) {}
   }
-  document.getElementById("copy-kiosk").onclick = function () {
-    collect(); saveConfig(CFG);
-    var url = displayURL();
-    var done = function () {
-      var ok = document.getElementById("copy-ok");
-      ok.style.display = ""; setTimeout(function () { ok.style.display = "none"; }, 2000);
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(done, function () { prompt("Copy this kiosk link:", url); });
-    } else { prompt("Copy this kiosk link:", url); }
-  };
 }
 
 /* ============ boot ============ */
