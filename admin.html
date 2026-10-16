@@ -87,14 +87,6 @@
       <input type="file" id="new-imgfile" accept="image/*" style="margin-top:8px;">
       <img id="new-imgprev" alt="" style="display:none; max-width:180px; margin-top:10px; border-radius:8px;">
       <div class="row">
-        <div><label>Tag</label>
-          <select id="new-tag">
-            <option value="info">Info</option>
-            <option value="important">Important</option>
-            <option value="urgent">Urgent</option>
-            <option value="event">Event</option>
-          </select>
-        </div>
         <div><label>&nbsp;</label><button class="btn primary" id="add-notice">Add</button></div>
       </div>
     </div>
@@ -333,7 +325,7 @@ function initAdmin() {
         b = document.getElementById("new-body").value.trim();
     if (!t) { alert("Give the notice a title."); return; }
     var img = newImgData || document.getElementById("new-imgurl").value.trim();
-    CFG.notices.push({ id: "n" + Date.now(), title: t, body: b, tag: document.getElementById("new-tag").value, img: img, imgPath: newImgPath, active: true });
+    CFG.notices.push({ id: "n" + Date.now(), title: t, body: b, img: img, imgPath: newImgPath, active: true });
     document.getElementById("new-title").value = "";
     document.getElementById("new-body").value = "";
     document.getElementById("new-imgurl").value = "";
