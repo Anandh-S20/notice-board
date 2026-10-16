@@ -21,6 +21,14 @@
       "body": "If you can see this, the sync is working!",
       "tag": "info",
       "active": true
+    },
+    {
+      "id": "test2",
+      "title": "World Heart Day",
+      "body": "29th September - Healthy hearts build stronger tomorrows",
+      "tag": "event",
+      "photo": "test-heart-day.jpg",
+      "active": true
     }
   ]
 }
