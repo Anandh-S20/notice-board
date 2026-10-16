@@ -15,6 +15,8 @@ export default async function handler(req, res) {
   if (!cfg || typeof cfg !== "object" || !Array.isArray(cfg.notices)) {
     return res.status(400).json({ error: "Invalid config" });
   }
+  /* Never store the PIN in the public repo — it lives in ADMIN_PIN env var only */
+  if ("pin" in cfg) delete cfg.pin;
 
   const repo = "Anandh-S20/notice-board";
   const path = "config.json";
