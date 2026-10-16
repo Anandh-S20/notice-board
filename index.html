@@ -48,7 +48,7 @@
     padding: 14px 42px 34px; min-height: 0; align-items: stretch;
   }
   #qr-panel { width: 400px; flex-shrink: 0; align-self: stretch; }
-  #notice-area { flex: 1; display: flex; min-width: 0; min-height: 0; position: relative; }
+  #notice-area { flex: 1; display: flex; min-width: 0; min-height: 0; position: relative; perspective: 1200px; }
   .notice-card {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; justify-content: center;
@@ -58,12 +58,15 @@
     border-radius: 22px;
     padding: clamp(28px, 4vw, 60px);
     display: flex; flex-direction: column; justify-content: center;
-    opacity: 0; transform: translateY(14px);
-    transition: opacity .6s ease, transform .6s ease;
+    opacity: 0; transform: rotateY(90deg) translateZ(100px);
+    transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.3,1.1);
     pointer-events: none;
     color: #1e1b2e;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
   }
-  .notice-card.show { opacity: 1; transform: none; pointer-events: auto; }
+  .notice-card.show { opacity: 1; transform: rotateY(0deg) translateZ(0); pointer-events: auto; }
+  .notice-card.show:hover { transform: rotateY(0deg) translateZ(20px) scale(1.01); }
   .notice-card .tag {
     align-self: flex-start; font-size: clamp(13px, 1.2vw, 17px); font-weight: 700;
     text-transform: uppercase; letter-spacing: 2px; color: #fff;
@@ -168,7 +171,7 @@
 <div id="display">
   <header>
     <div style="display:flex; align-items:center; gap:16px;">
-      <img id="banner-logo" src="logo.png" alt="Logo" style="height:84px; width:auto;">
+      <img id="banner-logo" src="logo.png" alt="Logo" style="height:84px; width:auto; transition: transform .5s ease; transform-style: preserve-3d;" onmouseover="this.style.transform='rotateY(15deg) scale(1.05)'" onmouseout="this.style.transform=''">
       <div id="board-title">Notice Board</div>
     </div>
     <div style="display:flex; align-items:center; gap:36px;">
