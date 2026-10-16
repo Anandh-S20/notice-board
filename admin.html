@@ -85,6 +85,12 @@
       <label>Photo (optional)</label>
       <input type="text" id="new-imgurl" placeholder="Paste an image link...">
       <input type="file" id="new-imgfile" accept="image/*" style="margin-top:8px;">
+      <div id="img-progress" style="display:none; margin-top:10px;">
+        <div style="height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+          <div id="img-progress-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#7c3aed,#a78bfa); border-radius:4px; transition:width .2s;"></div>
+        </div>
+        <div id="img-progress-text" style="font-size:12px; color:#64748b; margin-top:4px;">Uploading… 0%</div>
+      </div>
       <img id="new-imgprev" alt="" style="display:none; max-width:180px; margin-top:10px; border-radius:8px;">
       <div class="row">
         <div><label>&nbsp;</label><button class="btn primary" id="add-notice">Add</button></div>
@@ -139,15 +145,33 @@ function pushLive() {
     if (el) { el.style.display = ""; setTimeout(function () { el.style.display = "none"; }, 2500); }
   } catch (e) {}
 }
+function setImgProgress(pct, text) {
+  var wrap = document.getElementById("img-progress");
+  var bar = document.getElementById("img-progress-bar");
+  var txt = document.getElementById("img-progress-text");
+  if (pct == null) { wrap.style.display = "none"; return; }
+  wrap.style.display = "";
+  bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
+  txt.textContent = text || ("Uploading… " + Math.round(pct) + "%");
+}
 function uploadPhotoFile(file, cb) {
   try {
     var safe = (file.name || "photo").replace(/[^a-zA-Z0-9.\-_]/g, "_");
     var path = "noticeboard/photos/" + Date.now() + "_" + safe;
     var ref = fbApp().storage().ref(path);
-    ref.put(file).then(function () { return ref.getDownloadURL(); })
-      .then(function (url) { cb(url, path); })
-      .catch(function () { alert("Photo upload failed. Try an image link instead."); });
-  } catch (e) { alert("Photo upload failed. Try an image link instead."); }
+    var task = ref.put(file);
+    task.on("state_changed",
+      function (snap) {
+        var pct = snap.totalBytes ? (snap.bytesTransferred / snap.totalBytes) * 100 : 0;
+        setImgProgress(pct);
+      },
+      function () { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); },
+      function () {
+        setImgProgress(100, "Processing…");
+        ref.getDownloadURL().then(function (url) { setImgProgress(null); cb(url, path); })
+          .catch(function () { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); });
+      });
+  } catch (e) { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); }
 }
 /* Always delete the old photo when replaced or removed — no orphans. */
 function deletePhotoPath(path) {
@@ -305,7 +329,9 @@ function initAdmin() {
       return;
     }
     var reader = new FileReader();
+    setImgProgress(10, "Reading photo…");
     reader.onload = function () {
+      setImgProgress(50, "Compressing…");
       var img = new Image();
       img.onload = function () {
         var maxW = 900, w = img.width, h = img.height;
@@ -313,6 +339,7 @@ function initAdmin() {
         var c = document.createElement("canvas"); c.width = w; c.height = h;
         c.getContext("2d").drawImage(img, 0, 0, w, h);
         newImgData = c.toDataURL("image/jpeg", 0.72);
+        setImgProgress(null);
         setNewImgPreview(newImgData);
       };
       img.src = reader.result;
