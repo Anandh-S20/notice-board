@@ -10,30 +10,41 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-    background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 50%, #e8edf3 100%);
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e8edf3 50%, #dde5ee 100%);
     color: #1e293b;
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
   /* ---------- DISPLAY VIEW ---------- */
   #display { height: 100vh; display: flex; flex-direction: column; }
   #display header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 0; margin: 18px 42px 10px; border-radius: 14px;
-    background: linear-gradient(100deg, #0a1628 0%, #14264a 50%, #1e3a5f 100%);
-    box-shadow: 0 10px 34px rgba(10, 22, 40, .3);
-    padding: 18px 38px;
+    padding: 0; margin: 16px 40px 12px; border-radius: 12px;
+    background: linear-gradient(105deg, #081120 0%, #0f2140 40%, #1a3358 70%, #243b5e 100%);
+    box-shadow: 0 12px 40px rgba(8, 17, 32, .35), 0 2px 8px rgba(8, 17, 32, .2);
+    padding: 20px 40px;
     position: relative; overflow: hidden;
+    border: 1px solid rgba(201,162,39,.2);
     border-bottom: 3px solid #c9a227;
   }
+  #display header::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg, #c9a227, #e8c547, #c9a227);
+  }
   #display header::after {
-    content: ""; position: absolute; right: -70px; top: -70px;
-    width: 260px; height: 260px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(201,162,39,.12) 0%, rgba(201,162,39,0) 70%);
+    content: ""; position: absolute; right: -60px; top: -60px;
+    width: 240px; height: 240px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,162,39,.1) 0%, rgba(201,162,39,0) 70%);
     pointer-events: none;
   }
-  #board-title { font-size: clamp(30px, 3.6vw, 48px); font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #ffffff; text-shadow: 0 2px 8px rgba(0,0,0,.3); }
+  #board-title { font-size: clamp(28px, 3.2vw, 44px); font-weight: 800; letter-spacing: 4px; text-transform: uppercase; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,.4); }
+  #board-title::after {
+    content: ""; display: block; width: 60px; height: 3px;
+    background: linear-gradient(90deg, #c9a227, transparent);
+    margin-top: 6px; border-radius: 2px;
+  }
   #clock-in { color: #ffffff; text-align: right; margin-left: 0; }
   #clock-in .time, #clock-uae .time { font-size: clamp(20px, 2.2vw, 30px); font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 1px 4px rgba(0,0,0,.3); line-height: 1.25; color: #ffffff; }
   #clock-in .tz, #clock-uae .tz { font-size: clamp(13px, 1.4vw, 18px); font-weight: 700; opacity: .9; letter-spacing: 2px; margin-right: 8px; color: #c9a227; }
@@ -53,11 +64,13 @@
     position: absolute; inset: 0;
     display: flex; flex-direction: column; justify-content: center;
     background: #ffffff;
+    background-image: linear-gradient(180deg, rgba(201,162,39,.03) 0%, transparent 30%);
     border: 1px solid #e2e8f0;
     border-top: 4px solid #c9a227;
-    box-shadow: 0 18px 50px rgba(10,22,40,.1), 0 2px 8px rgba(10,22,40,.06);
-    border-radius: 14px;
-    padding: clamp(28px, 4vw, 60px);
+    border-left: 1px solid #c9a22733;
+    box-shadow: 0 20px 60px rgba(10,22,40,.12), 0 2px 8px rgba(10,22,40,.06);
+    border-radius: 12px;
+    padding: clamp(32px, 4.5vw, 68px);
     display: flex; flex-direction: column; justify-content: center;
     opacity: 0; transform: rotateY(90deg) translateZ(100px);
     transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.3,1.1);
@@ -65,6 +78,12 @@
     color: #1e293b;
     backface-visibility: hidden;
     transform-style: preserve-3d;
+    position: absolute;
+  }
+  .notice-card::before {
+    content: ""; position: absolute; top: 24px; right: 28px;
+    font-size: 11px; font-weight: 700; letter-spacing: 3px; color: #c9a227;
+    text-transform: uppercase; opacity: .7;
   }
   .notice-card.show { opacity: 1; transform: rotateY(0deg) translateZ(0); pointer-events: auto; }
   .notice-card.show:hover { transform: rotateY(0deg) translateZ(20px) scale(1.01); }
