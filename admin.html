@@ -392,10 +392,26 @@ function initAdmin() {
     if (p) CFG.pin = p;
   }
   document.getElementById("save-all").onclick = function () {
-    collect(); saveConfig(CFG); pushLive();
+    collect(); saveConfig(CFG); pushLive(); syncToKiosk();
     var ok = document.getElementById("save-ok");
     ok.style.display = ""; setTimeout(function () { ok.style.display = "none"; }, 2000);
   };
+  /* Push config to the shared kiosk via the sync API (no token in the page) */
+  function syncToKiosk() {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/sync", true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        var el = document.getElementById("live-saved");
+        if (xhr.status === 200) { el.style.display = ""; el.textContent = "Synced to display ✓"; }
+        else { el.style.display = ""; el.textContent = "Sync failed — display will use last saved"; el.style.color = "#d33"; }
+        setTimeout(function () { el.style.display = "none"; el.style.color = ""; }, 4000);
+      };
+      xhr.send(JSON.stringify(CFG));
+    } catch (e) {}
+  }
   document.getElementById("copy-kiosk").onclick = function () {
     collect(); saveConfig(CFG);
     var url = displayURL();
