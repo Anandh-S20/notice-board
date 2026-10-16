@@ -369,31 +369,14 @@ function initAdmin() {
     var reader = new FileReader();
     setImgProgress(10, "Reading photo…");
     reader.onload = function () {
-      setImgProgress(50, "Compressing…");
-      var img = new Image();
-      img.onload = function () {
-        /* Aggressive compression: keep payload small so saves never fail */
-        var maxW = 800, q = 0.6, w = img.width, h = img.height;
-        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
-        var c = document.createElement("canvas"); c.width = w; c.height = h;
-        c.getContext("2d").drawImage(img, 0, 0, w, h);
-        newImgData = c.toDataURL("image/jpeg", q);
-        /* If still too big (>400KB), shrink further */
-        var tries = 0;
-        while (newImgData.length > 400 * 1024 && tries < 3) {
-          tries++;
-          w = Math.round(w * 0.7); h = Math.round(h * 0.7); q = Math.max(0.4, q - 0.1);
-          c.width = w; c.height = h;
-          c.getContext("2d").drawImage(img, 0, 0, w, h);
-          newImgData = c.toDataURL("image/jpeg", q);
-        }
-        setImgProgress(null);
-        setNewImgPreview(newImgData);
-        if (newImgData.length > 500 * 1024) {
-          showToast("Photo is very large — it may fail to save. Try a smaller image.");
-        }
-      };
-      img.src = reader.result;
+      setImgProgress(90, "Processing…");
+      /* Store original quality — no compression */
+      newImgData = reader.result;
+      setImgProgress(null);
+      setNewImgPreview(newImgData);
+      if (newImgData.length > 1024 * 1024) {
+        showToast("Photo is large (" + Math.round(newImgData.length / 1024 / 1024 * 10) / 10 + "MB) — it may fail to save.");
+      }
     };
     reader.readAsDataURL(f);
   });
