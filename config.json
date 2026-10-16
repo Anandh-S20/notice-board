@@ -1,5 +1,4 @@
 {
-  "pin": "1234",
   "title": "Notice Board",
   "bannerTitle": "Notice Board",
   "logoUrl": "logo.png",
@@ -8,7 +7,7 @@
   "clock1Tz": "Asia/Kolkata",
   "clock2Label": "UAE",
   "clock2Tz": "Asia/Dubai",
-  "showDate": false,
+  "showDate": true,
   "showQr": true,
   "qrLabel": "Breaktime QR Code",
   "qrUrl": "https://efftime.com/break_log/gate.php",
