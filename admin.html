@@ -98,6 +98,7 @@
     </div>
 
     <span id="live-saved" style="color:#3fae6a; display:none; margin-left:10px;">Synced ✓</span>
+    <div id="toast" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1e293b; color:#fff; padding:12px 24px; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.25); z-index:9999; font-size:14px;"></div>
     <p class="hint">Changes save automatically.</p>
 
     <div class="card" style="margin-top:24px;">
@@ -172,6 +173,12 @@ function uploadPhotoFile(file, cb) {
           .catch(function () { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); });
       });
   } catch (e) { setImgProgress(null); alert("Photo upload failed. Try an image link instead."); }
+}
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.display = "";
+  setTimeout(function () { t.style.display = "none"; }, 3000);
 }
 /* Always delete the old photo when replaced or removed — no orphans. */
 function deletePhotoPath(path) {
@@ -254,7 +261,15 @@ function renderNoticeList() {
     d.querySelectorAll("button").forEach(function (b) {
       b.onclick = function () {
         var a = b.getAttribute("data-a");
-        if (a === "del") { if (confirm("Delete this notice?")) { deletePhotoPath(CFG.notices[i].imgPath); CFG.notices.splice(i, 1); } }
+        if (a === "del") {
+          if (confirm("Delete this notice?")) {
+            var delTitle = CFG.notices[i].title;
+            deletePhotoPath(CFG.notices[i].imgPath);
+            CFG.notices.splice(i, 1);
+            saveConfig(CFG); pushLive(); syncToKiosk();
+            showToast("Notice deleted: " + delTitle);
+          }
+        }
         else if (a === "toggle") { n.active = !n.active; }
         else if (a === "up" && i > 0) { CFG.notices.splice(i - 1, 0, CFG.notices.splice(i, 1)[0]); }
         else if (a === "down" && i < CFG.notices.length - 1) { CFG.notices.splice(i + 1, 0, CFG.notices.splice(i, 1)[0]); }
