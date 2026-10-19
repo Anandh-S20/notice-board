@@ -109,9 +109,9 @@
   .tag.event    { background: linear-gradient(135deg, rgba(139,92,246,.85), rgba(196,181,253,.85)); }
   /* photo notice: image fills the entire event box.
      Text sits at the top, below the banner. */
-  .notice-card.has-img {
+  .notice-card.has-img, .notice-card.has-vid {
     position: absolute; inset: 0;
-    display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch;
     padding: 0; margin: 0;
     border: 0; border-radius: 22px; overflow: hidden;
     background: #1a2332;
@@ -119,16 +119,25 @@
   .notice-card.has-img .photo-fill, .notice-card.has-vid .photo-fill {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     object-fit: cover; object-position: center; z-index: 0;
+    border-radius: 22px;
   }
+  /* bottom banner overlay: keeps artwork clear, holds title + details */
   .photo-overlay {
-    position: relative; z-index: 1;
-    background: linear-gradient(to bottom, rgba(5,8,20,.92) 0%, rgba(5,8,20,.55) 55%, transparent 100%);
-    padding: 36px clamp(28px, 4vw, 60px) 70px; border-radius: 0;
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 1;
+    background: linear-gradient(to top, rgba(5,8,20,.94) 0%, rgba(5,8,20,.6) 60%, transparent 100%);
+    padding: 70px clamp(28px, 4vw, 60px) 30px; border-radius: 0 0 22px 22px;
+    text-align: left;
   }
-  .photo-overlay {
-    position: relative; z-index: 1;
-    background: linear-gradient(to bottom, rgba(5,8,20,.92) 0%, rgba(5,8,20,.55) 55%, transparent 100%);
-    padding: 36px clamp(28px, 4vw, 60px) 70px; border-radius: 0;
+  .photo-overlay h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(28px, 3.2vw, 46px); font-weight: 700;
+    color: #f5d67b; margin: 0 0 8px; letter-spacing: 1px;
+    text-shadow: 0 2px 12px rgba(0,0,0,.6);
+  }
+  .photo-overlay p {
+    font-size: clamp(15px, 1.5vw, 21px); color: #f3f4f6;
+    margin: 0; line-height: 1.5; text-shadow: 0 1px 8px rgba(0,0,0,.6);
+    white-space: pre-line;
   }
   .notice-text { min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 
@@ -151,9 +160,6 @@
     pointer-events: none;
   }
   #qr-label { font-size: clamp(14px, 1.4vw, 18px); font-weight: 700; text-align: center; color: #fff; background: linear-gradient(120deg, #8b5cf6, #d946ef); border-radius: 999px; padding: 10px 28px; margin-bottom: 20px; letter-spacing: 1.5px; box-shadow: 0 4px 16px rgba(139,92,246,.3); text-transform: uppercase; }
-  /* Breaktime QR crop: their live page loads in the iframe behind, and this
-     window cuts out ONLY the QR code (their QR is a fixed 500x500 image at
-     page x=0, y~158 in a 500x875 iframe). JS scales it to fit exactly. */
   #qr-crop {
     width: 100%; aspect-ratio: 1 / 1; overflow: hidden; position: relative;
     background: #fff; border-radius: 14px;
@@ -203,7 +209,6 @@
 </style>
 </head>
 <body>
-<!-- ================= DISPLAY VIEW ================= -->
 <div id="display">
   <header>
     <div style="display:flex; align-items:center; gap:16px;">
@@ -233,15 +238,9 @@
 
 <script>
 "use strict";
-/* ============ storage & config ============ */
 var LS_KEY = "noticeboard.v1";
 var DEFAULT_QR = "https://efftime.com/break_log/gate.php";
 
-/* ============ Firebase live sync (optional) ============
-   Fill in a free Firebase project's web config to make the display
-   update instantly when the admin panel saves — no refresh, no new
-   kiosk link. Until configured, the page works exactly as before
-   (localStorage + #c= kiosk link). */
 var FIREBASE_CONFIG = {
   apiKey: "PASTE_API_KEY",
   authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
@@ -296,8 +295,6 @@ function loadConfig() {
   } catch (e) {}
   return defaultConfig();
 }
-/* Fetch the shared kiosk config from the repo (no auth needed, public).
-   This makes the plain link work as a kiosk — no long hash required. */
 function fetchKioskConfig(cb) {
   try {
     var xhr = new XMLHttpRequest();
@@ -307,7 +304,6 @@ function fetchKioskConfig(cb) {
       if (xhr.status === 200) {
         try {
           var remote = JSON.parse(xhr.responseText);
-          /* Use the shared config if valid (even with zero notices = clean board) */
           if (remote && typeof remote === "object" && Array.isArray(remote.notices)) {
             CFG = Object.assign(defaultConfig(), remote);
             try { localStorage.setItem(LS_KEY, JSON.stringify(CFG)); } catch (e) {}
@@ -329,24 +325,17 @@ function esc(s) {
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-/* ============ display view ============ */
 var curIdx = 0, rotTimer = null;
 
 function activeNotices() { return CFG.notices.filter(function (n) { return n.active; }); }
 
 var qrReloadTimer = null;
-/* The breaktime panel keeps their live page loading behind and crops the
-   view to ONLY the QR code (big and clean, like a standalone QR image).
-   Their page refreshes its own code every ~9.5 minutes; the frame also
-   reloads on a 10-minute safety cycle. */
 function fitQrCrop() {
   var win = document.getElementById("qr-crop");
   var frame = document.getElementById("qr-frame");
   if (!win || !frame || !win.clientWidth) return;
   var s = win.clientWidth / 500;
   frame.style.transform = "scale(" + s + ")";
-  /* Their QR starts ~160px down their page; scale the offset with the
-     zoom so the crop always lands on the QR, never the timer below. */
   frame.style.top = (-160 * s) + "px";
 }
 function renderQR() {
@@ -364,7 +353,6 @@ function renderNotices() {
   var mainEl = document.querySelector("#display main");
   wrap.innerHTML = "";
   if (!list.length) {
-    // No notices: show only the centered QR, no rotation timer.
     mainEl.classList.add("no-notices");
     if (rotTimer) { clearTimeout(rotTimer); rotTimer = null; }
     return;
@@ -377,9 +365,11 @@ function renderNotices() {
     if (n.video) {
       d.innerHTML = '<video class="photo-fill" src=' + JSON.stringify(n.video) +
         (n.img ? ' poster=' + JSON.stringify(n.img) : '') +
-        ' autoplay muted loop playsinline></video>' +
+        ' autoplay muted loop playsinline disablepictureinpicture></video>' +
         '<div class="photo-overlay">' +
         "<h2>" + esc(n.title) + "</h2><p>" + esc(n.body) + "</p></div>";
+      var vv = d.querySelector("video");
+      if (vv) { vv.muted = true; var pr = vv.play(); if (pr && pr.catch) pr.catch(function(){}); }
     } else if (n.img) {
       d.innerHTML = '<img class="photo-fill" src=' + JSON.stringify(n.img) + ' alt="">' +
         '<div class="photo-overlay">' +
@@ -402,7 +392,7 @@ function showNotice(i) {
 function restartRotation() {
   if (rotTimer) clearTimeout(rotTimer);
   rotTimer = null;
-  if (!activeNotices().length) return; // nothing to rotate: stay on the centered QR
+  if (!activeNotices().length) return;
   var secs = Math.max(4, Math.min(120, CFG.rotationSecs || 10));
   rotTimer = setTimeout(function () { showNotice(curIdx + 1); }, secs * 1000);
 }
@@ -417,12 +407,10 @@ function tickClock() {
   dt.textContent = d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: tz1 });
 }
 function applyConfigToDisplay() {
-  /* Banner */
   document.getElementById("board-title").textContent = CFG.bannerTitle || "Notice Board";
   var logoImg = document.getElementById("banner-logo");
   if (CFG.logoUrl === "__none__") { logoImg.style.display = "none"; }
   else { logoImg.style.display = ""; logoImg.src = CFG.logoUrl || "logo.png"; }
-  /* Clocks */
   var clocks = document.getElementById("clocks-col");
   if (CFG.showClocks === false) { clocks.style.display = "none"; }
   else {
@@ -430,21 +418,17 @@ function applyConfigToDisplay() {
     document.querySelector("#clock-in .tz").textContent = CFG.clock1Label || "INDIA";
     document.querySelector("#clock-uae .tz").textContent = CFG.clock2Label || "UAE";
   }
-  /* Date */
   document.getElementById("head-date").style.display = CFG.showDate === false ? "none" : "";
-  /* QR panel */
   var qr = document.getElementById("qr-panel");
   if (CFG.showQr === false) { qr.style.display = "none"; }
   else {
     qr.style.display = "";
     document.getElementById("qr-label").textContent = CFG.qrLabel || "Breaktime QR Code";
   }
-  /* Theme */
   document.body.setAttribute("data-theme", CFG.theme || "light");
   renderQR(); curIdx = 0; renderNotices(); restartRotation();
 }
 function initDisplay() {
-  /* Try the shared kiosk config first, then render */
   fetchKioskConfig(function () {
     applyConfigToDisplay();
     tickClock();
@@ -454,8 +438,6 @@ function initDisplay() {
     initConfigPoll();
   });
 }
-/* Smart poll: check the shared config every 1s, re-render notices only
-   if something changed — no page reload, no QR flicker. */
 function initConfigPoll() {
   setInterval(function () {
     try {
@@ -478,7 +460,6 @@ function initConfigPoll() {
     } catch (e) {}
   }, 1000);
 }
-/* Live updates from Firebase (if configured). A #c= kiosk link always wins. */
 function initLiveSync() {
   if (!firebaseReady()) return;
   if ((location.hash || "").indexOf("#c=") === 0) return;
@@ -492,10 +473,9 @@ function initLiveSync() {
         applyConfigToDisplay();
       }
     });
-  } catch (e) { /* stay in local mode */ }
+  } catch (e) { }
 }
 
-/* ============ boot ============ */
 initDisplay();
 </script>
 </body>
