@@ -20,13 +20,6 @@
       "body": "Today at 3:30 PM",
       "img": "https://anandh-s20.github.io/notice-board/dussehra-2026.jpg",
       "active": true
-    },
-    {
-      "id": "ntest123",
-      "title": "TEST - delete me",
-      "body": "speed test",
-      "img": "",
-      "active": true
     }
   ]
 }
