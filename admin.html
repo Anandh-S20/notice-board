@@ -247,14 +247,6 @@ function syncToKiosk(onOk) {
   try {
     var copy = JSON.parse(JSON.stringify(CFG));
     delete copy.pin;
-    var payload = JSON.stringify(copy);
-    if (payload.length > 4 * 1024 * 1024) {
-      showToast("Too large to sync — use a smaller photo.");
-      var el2 = document.getElementById("live-saved");
-      el2.style.display = ""; el2.textContent = "Sync failed — too large"; el2.style.color = "#e05252";
-      setTimeout(function () { el2.style.display = "none"; el2.style.color = ""; }, 4000);
-      setSyncProgress(null);
-      return;
     }
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "https://notice-board-sooty.vercel.app/api/sync", true);
