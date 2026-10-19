@@ -13,5 +13,13 @@
   "clock2Label": "UAE",
   "clock2Tz": "Asia/Dubai",
   "rotationSecs": 10,
-  "notices": []
+  "notices": [
+    {
+      "id": "n1792381551024",
+      "title": "Dussehra Celebration",
+      "body": "Today at 3:30 PM",
+      "img": "https://anandh-s20.github.io/notice-board/dussehra-2026.jpg",
+      "active": true
+    }
+  ]
 }
