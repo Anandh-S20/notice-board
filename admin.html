@@ -125,6 +125,17 @@
         <div id="img-progress-text" class="progress-text">Uploading… 0%</div>
       </div>
       <img id="new-imgprev" alt="" style="display:none; max-width:180px; margin-top:10px; border-radius:8px;">
+      <label style="margin-top:14px;">Video (optional)</label>
+      <div class="field-wrap">
+        <input type="text" id="new-vidurl" placeholder="Paste a video link..." autocomplete="off">
+        <span class="save-tick" id="tick-new-vidurl">✓</span>
+      </div>
+      <input type="file" id="new-vidfile" accept="video/mp4,video/webm,video/quicktime" style="margin-top:8px;">
+      <div id="vid-progress" class="progress-wrap">
+        <div class="progress-track"><div id="vid-progress-bar" class="progress-fill"></div></div>
+        <div id="vid-progress-text" class="progress-text">Uploading… 0%</div>
+      </div>
+      <div id="new-vidprev" style="display:none; margin-top:10px; color:#8fa3c8; font-size:13px;"></div>
       <div><button class="btn primary" id="add-notice" style="margin-top:12px;">Add Notice</button></div>
     </div>
 
@@ -225,6 +236,15 @@ function setImgProgress(pct, text) {
   var wrap = document.getElementById("img-progress");
   var bar = document.getElementById("img-progress-bar");
   var txt = document.getElementById("img-progress-text");
+  if (pct == null) { wrap.style.display = "none"; return; }
+  wrap.style.display = "block";
+  bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
+  txt.textContent = text || ("Uploading… " + Math.round(pct) + "%");
+}
+function setVidProgress(pct, text) {
+  var wrap = document.getElementById("vid-progress");
+  var bar = document.getElementById("vid-progress-bar");
+  var txt = document.getElementById("vid-progress-text");
   if (pct == null) { wrap.style.display = "none"; return; }
   wrap.style.display = "block";
   bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
@@ -364,15 +384,21 @@ function persistAndSync(onOk) {
 
 /* ---------- add notice ---------- */
 var newImgData = "";
+var newVidUrl = "";
 
 function setNewImgPreview(src) {
   var p = document.getElementById("new-imgprev");
   if (src) { p.src = src; p.style.display = ""; }
   else { p.src = ""; p.style.display = "none"; }
 }
+function setNewVidPreview(src) {
+  var p = document.getElementById("new-vidprev");
+  if (src) { p.textContent = "Video ready: " + src.slice(0, 60) + (src.length > 60 ? "…" : ""); p.style.display = ""; }
+  else { p.textContent = ""; p.style.display = "none"; }
+}
 
 function initAddForm() {
-  ["new-title", "new-body", "new-imgurl"].forEach(function (id) {
+  ["new-title", "new-body", "new-imgurl", "new-vidurl"].forEach(function (id) {
     var el = document.getElementById(id);
     el.addEventListener("input", function () { hideTick(id); });
   });
@@ -410,23 +436,91 @@ function initAddForm() {
     reader.readAsDataURL(f);
   });
 
+  /* Video URL field */
+  document.getElementById("new-vidurl").addEventListener("input", function () {
+    if (this.value.trim()) {
+      document.getElementById("new-vidfile").value = "";
+      newVidUrl = "";
+      setNewVidPreview(this.value.trim());
+    } else {
+      setNewVidPreview("");
+    }
+  });
+
+  /* Video file → uploaded to repo via /api/upload, URL set automatically */
+  document.getElementById("new-vidfile").addEventListener("change", function () {
+    var f = this.files && this.files[0];
+    if (!f) return;
+    if (f.size > 3 * 1024 * 1024) {
+      showToast("Video too large for direct upload (max ~3 MB). Upload it via the GitHub website and paste the link instead.");
+      this.value = "";
+      return;
+    }
+    document.getElementById("new-vidurl").value = "";
+    hideTick("new-vidurl");
+    var reader = new FileReader();
+    setVidProgress(10, "Reading video…");
+    reader.onload = function () {
+      setVidProgress(40, "Uploading video…");
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://notice-board-sooty.vercel.app/api/upload", true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable && e.total > 0)
+          setVidProgress(40 + Math.round((e.loaded / e.total) * 55), "Uploading video…");
+      };
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status === 200) {
+          try {
+            var r = JSON.parse(xhr.responseText);
+            if (r.ok && r.url) {
+              newVidUrl = r.url;
+              setVidProgress(null);
+              setNewVidPreview(newVidUrl);
+              showToast("Video uploaded.");
+              return;
+            }
+          } catch (e) {}
+        }
+        setVidProgress(null);
+        showToast("Video upload failed — try a smaller file or paste a link.");
+      };
+      xhr.onerror = function () {
+        setVidProgress(null);
+        showToast("Video upload failed — try a smaller file or paste a link.");
+      };
+      xhr.send(JSON.stringify({ filename: f.name, content: reader.result }));
+    };
+    reader.onerror = function () {
+      setVidProgress(null);
+      showToast("Could not read video — try another file.");
+    };
+    reader.readAsDataURL(f);
+  });
+
   document.getElementById("add-notice").onclick = function () {
     var t = document.getElementById("new-title").value.trim();
     var b = document.getElementById("new-body").value.trim();
     if (!t) { showToast("Give the notice a title first."); return; }
     var img = newImgData || document.getElementById("new-imgurl").value.trim();
-    CFG.notices.push({ id: "n" + Date.now(), title: t, body: b, img: img, active: true });
+    var vid = newVidUrl || document.getElementById("new-vidurl").value.trim();
+    CFG.notices.push({ id: "n" + Date.now(), title: t, body: b, img: img, video: vid, active: true });
     document.getElementById("new-title").value = "";
     document.getElementById("new-body").value = "";
     document.getElementById("new-imgurl").value = "";
     document.getElementById("new-imgfile").value = "";
     newImgData = "";
+    document.getElementById("new-vidurl").value = "";
+    document.getElementById("new-vidfile").value = "";
+    newVidUrl = "";
+    setNewVidPreview("");
     setNewImgPreview("");
     var addLocalOk = saveConfig(CFG);
     renderNoticeList();
     persistAndSync(function () {
       showToast(addLocalOk ? "Notice added: " + t : "Notice added — synced to display (local cache full).");
-      showTick("new-title"); showTick("new-body"); showTick("new-imgurl");
+      showTick("new-title"); showTick("new-body"); showTick("new-imgurl"); showTick("new-vidurl");
     });
   };
 }
