@@ -13,5 +13,14 @@
   "clock2Label": "UAE",
   "clock2Tz": "Asia/Dubai",
   "rotationSecs": 10,
-  "notices": []
+  "notices": [
+    {
+      "id": "n1792392001054",
+      "title": "Happy Ayudha Pooja",
+      "body": "Monday, 19 October 2026 @ 3:30 PM\nVENUE: Inside Office\nContact: Happiness Department",
+      "img": "",
+      "video": "https://anandh-s20.github.io/notice-board/videos/ayudha-pooja-2026.mp4",
+      "active": true
+    }
+  ]
 }
