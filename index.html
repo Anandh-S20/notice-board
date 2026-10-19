@@ -116,7 +116,7 @@
     border: 0; border-radius: 22px; overflow: hidden;
     background: #1a2332;
   }
-  .notice-card.has-img .photo-fill {
+  .notice-card.has-img .photo-fill, .notice-card.has-vid .photo-fill {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     object-fit: cover; object-position: center; z-index: 0;
   }
@@ -373,8 +373,14 @@ function renderNotices() {
   if (curIdx >= list.length) curIdx = 0;
   list.forEach(function (n, i) {
     var d = document.createElement("div");
-    d.className = "notice-card" + (i === curIdx ? " show" : "") + (n.img ? " has-img" : "");
-    if (n.img) {
+    d.className = "notice-card" + (i === curIdx ? " show" : "") + (n.video ? " has-vid" : "") + (n.img ? " has-img" : "");
+    if (n.video) {
+      d.innerHTML = '<video class="photo-fill" src=' + JSON.stringify(n.video) +
+        (n.img ? ' poster=' + JSON.stringify(n.img) : '') +
+        ' autoplay muted loop playsinline></video>' +
+        '<div class="photo-overlay">' +
+        "<h2>" + esc(n.title) + "</h2><p>" + esc(n.body) + "</p></div>";
+    } else if (n.img) {
       d.innerHTML = '<img class="photo-fill" src=' + JSON.stringify(n.img) + ' alt="">' +
         '<div class="photo-overlay">' +
         "<h2>" + esc(n.title) + "</h2><p>" + esc(n.body) + "</p></div>";
