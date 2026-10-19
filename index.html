@@ -20,11 +20,7 @@
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
   }
-
-  /* ---------- DISPLAY VIEW ---------- */
   #display { height: 100vh; display: flex; flex-direction: column; }
-  /* Liquid Glass: floating UI layer (header, QR panel) gets glass.
-     Content cards stay solid per Apple HIG. */
   #display header {
     display: flex; justify-content: space-between; align-items: center;
     padding: 0; margin: 20px 44px 14px; border-radius: 22px;
@@ -55,7 +51,6 @@
   @keyframes flagfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
   #clock-uae { flex: 1; text-align: center; color: #fff; }
   #clock .date, .date { font-size: clamp(15px, 1.5vw, 22px); margin-top: 8px; color: #e9d5ff; font-weight: 700; letter-spacing: 1.5px; }
-
   #display main {
     flex: 1; display: flex; gap: 26px;
     padding: 14px 42px 34px; min-height: 0; align-items: stretch;
@@ -70,14 +65,8 @@
     box-shadow: 0 20px 60px rgba(0,0,0,.4), 0 2px 8px rgba(0,0,0,.3);
     border-radius: 22px;
     padding: clamp(32px, 4.5vw, 68px);
-    display: flex; flex-direction: column; justify-content: center;
     opacity: 0; transform: rotateY(90deg) translateZ(100px);
     transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.3,1.1);
-    pointer-events: none;
-    color: #f1f5f9;
-    backface-visibility: hidden;
-    transform-style: preserve-3d;
-  .notice-card.show { opacity: 1; transform: rotateY(0deg) translateZ(0); pointer-events: auto; }
     pointer-events: none;
     color: #f1f5f9;
     backface-visibility: hidden;
@@ -107,8 +96,6 @@
   .tag.important{ background: linear-gradient(135deg, rgba(245,158,11,.85), rgba(251,191,36,.85)); }
   .tag.urgent   { background: linear-gradient(135deg, rgba(239,68,68,.85), rgba(248,113,113,.85)); }
   .tag.event    { background: linear-gradient(135deg, rgba(139,92,246,.85), rgba(196,181,253,.85)); }
-  /* photo notice: image fills the entire event box.
-     Text sits at the top, below the banner. */
   .notice-card.has-img, .notice-card.has-vid {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch;
@@ -121,7 +108,6 @@
     object-fit: cover; object-position: center; z-index: 0;
     border-radius: 22px;
   }
-  /* bottom banner overlay: keeps artwork clear, holds title + details */
   .photo-overlay {
     position: absolute; bottom: 0; left: 0; right: 0; z-index: 1;
     background: linear-gradient(to top, rgba(5,8,20,.94) 0%, rgba(5,8,20,.6) 60%, transparent 100%);
@@ -140,7 +126,6 @@
     white-space: pre-line;
   }
   .notice-text { min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
-
   #qr-panel {
     width: clamp(320px, 26vw, 400px);
     background: rgba(28, 28, 45, 0.55);
@@ -169,12 +154,9 @@
     position: absolute; left: 0; top: 0;
     transform-origin: 0 0;
   }
-
-  /* no notices: QR stays left permanently, no rotation */
   #display main.no-notices { grid-template-columns: 1fr; }
   #display main.no-notices #notice-area { display: none; }
   #display main.no-notices #qr-panel { grid-column: 1; justify-self: start; width: clamp(320px, 26vw, 400px); }
-
   @media (max-width: 1100px) {
     #display main { grid-template-columns: 1fr; overflow-y: auto; }
     #display main.no-notices { grid-template-columns: 1fr; }
@@ -182,8 +164,6 @@
     #qr-panel { order: -1; justify-self: center; }
     #notice-area { min-height: 420px; }
   }
-
-  /* ---------- DARK THEME ---------- */
   body[data-theme="dark"] {
     background: radial-gradient(1200px 800px at 70% 20%, #2a1f3d 0%, #16121f 55%, #0d0a14 100%);
     color: #fff;
@@ -205,14 +185,13 @@
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
   body[data-theme="dark"] .notice-card p { color: #fff; opacity: .92; }
-
 </style>
 </head>
 <body>
 <div id="display">
   <header>
     <div style="display:flex; align-items:center; gap:16px;">
-      <img id="banner-logo" src="logo.png" alt="Logo" style="height:84px; width:auto; transition: transform .5s ease; transform-style: preserve-3d;" onmouseover="this.style.transform='rotateY(15deg) scale(1.05)'" onmouseout="this.style.transform=''">
+      <img id="banner-logo" src="logo.png" alt="Logo" style="height:84px; width:auto;">
       <div id="board-title">Notice Board</div>
     </div>
     <div style="display:flex; align-items:center; gap:36px;">
@@ -235,12 +214,10 @@
     </div>
   </main>
 </div>
-
 <script>
 "use strict";
 var LS_KEY = "noticeboard.v1";
 var DEFAULT_QR = "https://efftime.com/break_log/gate.php";
-
 var FIREBASE_CONFIG = {
   apiKey: "PASTE_API_KEY",
   authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
@@ -252,42 +229,20 @@ var FIREBASE_CONFIG = {
 function firebaseReady() {
   return FIREBASE_CONFIG.apiKey.indexOf("PASTE") !== 0 && typeof firebase !== "undefined";
 }
-
 function defaultConfig() {
   return {
-    pin: "1234",
-    title: "Notice Board",
-    bannerTitle: "Notice Board",
-    logoUrl: "logo.png",
-    showClocks: true,
-    clock1Label: "INDIA",
-    clock1Tz: "Asia/Kolkata",
-    clock2Label: "UAE",
-    clock2Tz: "Asia/Dubai",
-    showDate: true,
-    showQr: true,
-    qrLabel: "Breaktime QR Code",
-    qrUrl: "https://efftime.com/break_log/gate.php",
-    theme: "light",
-    rotationSecs: 10,
-    notices: [
-      { id: "n1", title: "Welcome to the Notice Board", body: "This is a sample notice.\nReplace it on the admin page (PIN 1234).", tag: "info", active: true },
-      { id: "n2", title: "Sample: Team meeting at 4 PM", body: "Conference room. This is a sample — delete it on the admin page.", tag: "event", active: true }
-    ]
+    pin: "1234", title: "Notice Board", bannerTitle: "Notice Board", logoUrl: "logo.png",
+    showClocks: true, clock1Label: "INDIA", clock1Tz: "Asia/Kolkata",
+    clock2Label: "UAE", clock2Tz: "Asia/Dubai",
+    showDate: true, showQr: true, qrLabel: "Breaktime QR Code",
+    qrUrl: "https://efftime.com/break_log/gate.php", theme: "light", rotationSecs: 10,
+    notices: []
   };
-}
-function b64e(s) {
-  return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-function b64d(s) {
-  s = s.replace(/-/g, "+").replace(/_/g, "/");
-  while (s.length % 4) s += "=";
-  return decodeURIComponent(escape(atob(s)));
 }
 function loadConfig() {
   var h = location.hash || "";
   if (h.indexOf("#c=") === 0) {
-    try { return Object.assign(defaultConfig(), JSON.parse(b64d(h.slice(3)))); } catch (e) {}
+    try { return Object.assign(defaultConfig(), JSON.parse(atob(h.slice(3)))); } catch (e) {}
   }
   try {
     var raw = localStorage.getItem(LS_KEY);
@@ -316,19 +271,13 @@ function fetchKioskConfig(cb) {
     xhr.send();
   } catch (e) { cb(); }
 }
-function saveConfig(cfg) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)); } catch (e) {}
-}
 var CFG = loadConfig();
 function esc(s) {
   return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-
 var curIdx = 0, rotTimer = null;
-
 function activeNotices() { return CFG.notices.filter(function (n) { return n.active; }); }
-
 var qrReloadTimer = null;
 function fitQrCrop() {
   var win = document.getElementById("qr-crop");
@@ -347,7 +296,6 @@ function renderQR() {
   if (qrReloadTimer) clearInterval(qrReloadTimer);
   qrReloadTimer = setInterval(function () { frame.setAttribute("src", pageUrl); }, 10 * 60 * 1000);
 }
-
 function renderNotices() {
   var list = activeNotices(), wrap = document.getElementById("cards");
   var mainEl = document.querySelector("#display main");
@@ -381,7 +329,6 @@ function renderNotices() {
     wrap.appendChild(d);
   });
 }
-
 function showNotice(i) {
   var list = activeNotices();
   if (!list.length) return;
@@ -392,7 +339,9 @@ function showNotice(i) {
 function restartRotation() {
   if (rotTimer) clearTimeout(rotTimer);
   rotTimer = null;
-  if (!activeNotices().length) return;
+  var list = activeNotices();
+  if (!list.length) return;
+  if (list.length === 1) return;
   var secs = Math.max(4, Math.min(120, CFG.rotationSecs || 10));
   rotTimer = setTimeout(function () { showNotice(curIdx + 1); }, secs * 1000);
 }
@@ -434,7 +383,6 @@ function initDisplay() {
     tickClock();
     setInterval(tickClock, 1000);
     window.addEventListener("resize", fitQrCrop);
-    initLiveSync();
     initConfigPoll();
   });
 }
@@ -460,22 +408,6 @@ function initConfigPoll() {
     } catch (e) {}
   }, 1000);
 }
-function initLiveSync() {
-  if (!firebaseReady()) return;
-  if ((location.hash || "").indexOf("#c=") === 0) return;
-  try {
-    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    firebase.database().ref("noticeboard/config").on("value", function (snap) {
-      var val = snap.val();
-      if (val && typeof val === "object") {
-        CFG = Object.assign(defaultConfig(), val);
-        saveConfig(CFG);
-        applyConfigToDisplay();
-      }
-    });
-  } catch (e) { }
-}
-
 initDisplay();
 </script>
 </body>
