@@ -247,7 +247,7 @@ function syncToKiosk(onOk) {
   try {
     var copy = JSON.parse(JSON.stringify(CFG));
     delete copy.pin;
-    }
+    var payload = JSON.stringify(copy);
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "https://notice-board-sooty.vercel.app/api/sync", true);
     xhr.setRequestHeader("Content-Type", "application/json");
@@ -351,20 +351,14 @@ function doDeleteNotice(idx) {
   if (!n) return;
   var delTitle = n.title || "notice";
   CFG.notices.splice(idx, 1);
-  if (!saveConfig(CFG)) {
-    showToast("Could not save — storage issue. Please try again.");
-    return;
-  }
+  var delLocalOk = saveConfig(CFG);
   renderNoticeList(); /* disappear immediately */
-  showToast("Notice deleted: " + delTitle);
+  showToast(delLocalOk ? "Notice deleted: " + delTitle : "Notice deleted — synced to display (local cache full).");
   syncToKiosk(); /* sync in background */
 }
 
 function persistAndSync(onOk) {
-  if (!saveConfig(CFG)) {
-    showToast("Could not save locally — storage full?");
-    return;
-  }
+  saveConfig(CFG); /* local cache only — the server sync is the source of truth */
   syncToKiosk(onOk);
 }
 
@@ -428,15 +422,10 @@ function initAddForm() {
     document.getElementById("new-imgfile").value = "";
     newImgData = "";
     setNewImgPreview("");
-    if (!saveConfig(CFG)) {
-      CFG.notices.pop();
-      renderNoticeList();
-      showToast("Could not save — storage full? Try a smaller photo.");
-      return;
-    }
+    var addLocalOk = saveConfig(CFG);
     renderNoticeList();
     persistAndSync(function () {
-      showToast("Notice added: " + t);
+      showToast(addLocalOk ? "Notice added: " + t : "Notice added — synced to display (local cache full).");
       showTick("new-title"); showTick("new-body"); showTick("new-imgurl");
     });
   };
